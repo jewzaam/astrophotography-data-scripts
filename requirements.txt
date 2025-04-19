@@ -1,0 +1,6 @@
+xmltodict
+xisf==0.9.5
+psutil
+astropy
+requests
+coverage
