@@ -12,6 +12,9 @@ SKIP_PROFILES=[
     "e3438b85-2196-4cde-ad8e-5492e3ca83c9", # E120@f7.0+ZWO ASI2600MM Pro
     "bf009667-c0bc-4c11-a7ab-6dfa8bdc71e2", # C8E@f7.0+ZWO ASI2600MM Pro
     "491c0f8e-d48a-4b81-8674-355bd37a30e2", # R135@f2.8+AP26CC
+    "cbd7c275-a041-4db8-911a-0008b67f7593", # SQA55@f5.3+AP26CC
+    "eae6ca9c-dc72-457f-9234-55b6e6b057c1", # SQA55@f4.8+ZWO ASI2600MM Pro
+    "0b09bb0b-4bd8-40f1-b782-a1589f2a58cc", # SQA55@f4.8+SL2
 ]
 
 try:
@@ -36,7 +39,7 @@ try:
         filter_names = row_ap[2].split(",")
 
         if profile_id in SKIP_PROFILES:
-            print(f"SKIPPING {profile_id}, {profile_name}")
+            #print(f"SKIPPING {profile_id}, {profile_name}")
             continue
 
         # get all draft and active target data where also have an exposureplan
@@ -50,7 +53,7 @@ try:
 
         rows_ts = c_ts.fetchall()
         if rows_ts is None or len(rows_ts) == 0:
-            print("ERROR no exposure plans found. Aborting.")
+            print(f"ERROR no exposure plans found for profile '{profile_id} / {profile_name}'. Aborting.")
             sys.exit(1)
 
         data = []

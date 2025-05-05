@@ -33,7 +33,7 @@ try:
         filename_csv = f"{common.DIRECTORY_CSV}{os.sep}desired-{profile_id}.csv"
 
         if not os.path.isfile(filename_csv):
-            print(f"WARNING no CSV for profile {profile_id}")
+            # print(f"WARNING no CSV for profile {profile_id}")
             continue
 
         with open(filename_csv, "r") as f:

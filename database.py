@@ -512,6 +512,11 @@ class Astrophotgraphy(Database):
                     if self.debug:
                         print(f"data[filename]={data[filename]}")
 
+                    # some setups (Dwarf 3) don't have lat/long, default to first default location
+                    if 'latitude' not in data[filename] or 'longitude' not in data[filename]:
+                        data[filename]['latitude'] = Astrophotgraphy.defaultLocations[0]['latitude']
+                        data[filename]['longitude'] = Astrophotgraphy.defaultLocations[0]['longitude']
+
                     # extract bits needed for hash
                     datum = {
                         "date": data[filename]['date'],

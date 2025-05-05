@@ -328,6 +328,8 @@ def normalize_headers(input:{}):
     return output
 
 def replace_env_vars(input:str):
+    if input is None:
+        return None
     output = input
     output_uc = input.upper()
     for e in os.environ.items():
@@ -473,12 +475,14 @@ def get_filtered_metadata(dirs:[str], filters:{}, profileFromPath:bool, patterns
         filters=filters,
         debug=debug,
     )
+
     return metadata
 
 def get_filenames(dirs:[str], patterns=[".*\.fits$"], recursive=False):
     filenames = []
     for pattern in patterns:
         for dir in dirs:
+            dir=replace_env_vars(dir)
             if not recursive:
                 for filename in (filename for filename in os.listdir(dir) if re.search(pattern, filename)):
                     filenames.append(os.path.join(dir, filename))
@@ -505,11 +509,13 @@ def get_metadata(dirs:[str], profileFromPath:bool, patterns=[".*\.fits$"], recur
     count_files=0 # could use len but assuming this is faster
     if printStatus:
         print("Loading data..", end=".", flush=True)
+
     filenames = get_filenames(
         dirs=dirs,
         patterns=patterns,
         recursive=recursive,
     )
+
     for filename in filenames:
         d = get_file_headers(filename, profileFromPath=profileFromPath)
         data[d['filename']] = d
@@ -629,17 +635,15 @@ def filter_metadata(data:{}, filters:{}, debug=False):
         for filter_key in filters.keys():
             filter_value = filters[filter_key]
 
-            # if we don't have the filter in the datum it's ok, just add it anyway
-            #if filter_key not in datum:
-            #    # we don't have it in datum, do not add.
-            #    is_match = False
-            #    break
+            # if we don't have the filter in the datum it's ok, just treat it as "OK"
+            if filter_key not in datum:
+                continue
 
             # filter exists in datum, check value
-            if inspect.isfunction(filter_value):
+            if callable(filter_value):
                 try:
                     # assumes the function returns bool...
-                    if filter_key in datum and not filter_value(datum[filter_key]):
+                    if not filter_value(datum[filter_key]):
                         # not a match
                         is_match = False
                         break
@@ -658,6 +662,7 @@ def filter_metadata(data:{}, filters:{}, debug=False):
                     # cannot convert to int probably, so it's not a match
                     is_match = False
                     break
+
             elif type(filter_value) is float:
                 try:
                     # set to match if
@@ -669,6 +674,7 @@ def filter_metadata(data:{}, filters:{}, debug=False):
                     # cannot convert to float probably, so it's not a match
                     is_match = False
                     break
+
             else:
                 # default, treat as string
                 if str(datum[filter_key]) != filter_value:
@@ -936,6 +942,8 @@ def copy_calibration_to_lights(type="", calibration_dir="", lights_dir="", group
             print(f"    {dict(d)}")
 
 def delete_empty_directories(root_dir:str, dryrun=False): # pragma: no cover
+    root_dir=replace_env_vars(root_dir)
+    print(f"delete_empty_directories({root_dir})")
     done = False
     while not done and not dryrun:
         done = True

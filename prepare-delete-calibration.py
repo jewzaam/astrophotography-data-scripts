@@ -22,6 +22,7 @@ user_dryrun = args["dryrun"]
 
 p = filesystem.Delete(
     input_dir=user_input_dir,
+    input_pattern=".*\.(fits|xisf)$",
     debug=user_debug,
     dryrun=user_dryrun,
 )

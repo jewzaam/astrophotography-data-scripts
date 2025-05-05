@@ -56,6 +56,10 @@ try:
             abs(float(raw_data["Target"]["InputCoordinates"]["DecSeconds"]) / 60 / 60)
         )
 
+        rotation = 0
+        if "PositionAngle" in raw_data["Target"]:
+            rotation = float(raw_data["Target"]["PositionAngle"])
+
         if raw_data["Target"]["InputCoordinates"]["NegativeDec"]:
             coord_dec *= -1
         
@@ -91,7 +95,6 @@ try:
                 "priority": 0,
                 "ditherevery": 15,
                 "isMosaic": isMosaic,
-                "rotation": 0,
                 "filters": [
                     {
                         "filtername": "L",
@@ -111,7 +114,6 @@ try:
                 "priority": 0,
                 "ditherevery": 5,
                 "isMosaic": isMosaic,
-                "rotation": 0,
                 "filters": [
                     {
                         "filtername": "O",
@@ -134,7 +136,6 @@ try:
                 "priority": 0,
                 "ditherevery": 10,
                 "isMosaic": isMosaic,
-                "rotation": 0,
                 "filters": [
                     {
                         "filtername": "L",
@@ -154,7 +155,6 @@ try:
                 "priority": 0,
                 "ditherevery": 5,
                 "isMosaic": isMosaic,
-                "rotation": 0,
                 "filters": [
                     {
                         "filtername": "O",
@@ -177,7 +177,6 @@ try:
                 "priority": 0,
                 "ditherevery": 5,
                 "isMosaic": isMosaic,
-                "rotation": 0,
                 "filters": [
                     {
                         "filtername": "UVIR",
@@ -188,7 +187,6 @@ try:
                 "priority": 0,
                 "ditherevery": 4,
                 "isMosaic": isMosaic,
-                "rotation": 0,
                 "filters": [
                     {
                         "filtername": "LeXtr",
@@ -199,13 +197,35 @@ try:
                 "priority": 0,
                 "ditherevery": 4,
                 "isMosaic": isMosaic,
-                "rotation": 0,
                 "filters": [
                     {
                         "filtername": "ALPT",
                     },
                 ]
             }
+        elif profile_name.endswith("+DWARFIII"):
+            project_data["Astro"] = {
+                "priority": 0,
+                "ditherevery": 0,
+                "isMosaic": isMosaic,
+                "filters": [
+                    {
+                        "filtername": "Astro",
+                    },
+                ]
+            }
+            project_data["Dual-Band"] = {
+                "priority": 0,
+                "ditherevery": 0,
+                "isMosaic": isMosaic,
+                "filters": [
+                    {
+                        "filtername": "Dual-Band",
+                    },
+                ]
+            }
+        else:
+            print(f"WARNING: profile not handled!  '{profile_name}'")
 
         
         #print(f"{profile_name}: {targetname}/{panelname} @ {coord_ra} / {coord_dec}")
@@ -240,7 +260,7 @@ try:
                                 );"""
                 c_ts.execute(insert_project)
 
-            select_target = f"""select id, ra, dec
+            select_target = f"""select id, ra, dec, rotation
                                 from target
                                 where name=\"{targetname_with_panel}\"
                                 and projectid in (select id 
@@ -262,7 +282,7 @@ try:
                                     {coord_ra},
                                     {coord_dec},
                                     2,
-                                    {project_data[key]["rotation"]},
+                                    {rotation},
                                     100,
                                     (select id 
                                         from project
@@ -276,13 +296,17 @@ try:
                 t_id = row_p[0]
                 old_ra = round(row_p[1], precision)
                 old_dec = round(row_p[2], precision)
-                if old_ra != round(coord_ra, precision) or old_dec != round(coord_dec, precision):
+                old_rotation = row_p[3]
+                if old_ra != round(coord_ra, precision) or old_dec != round(coord_dec, precision) or old_rotation != rotation:
                     print(f"UPDATE target: {profile_name}/{targetname_with_panel}")
-                    print(f"\tra({row_p[1]} --> {coord_ra}), dec({row_p[2]} --> {coord_dec})")
+                    print(f"\tra     ({row_p[1]} --> {coord_ra})")
+                    print(f"\tdec    ({row_p[2]} --> {coord_dec})")
+                    print(f"\rotation({row_p[3]} --> {rotation})")
                     # update coordinates..
                     update_target = f"""update target
                                         set ra={coord_ra},
-                                        dec={coord_dec}
+                                        dec={coord_dec},
+                                        rotation={rotation}
                                         where id={t_id};"""
                     c_ts.execute(update_target)
 
