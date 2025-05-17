@@ -292,7 +292,7 @@ class Astrophotgraphy(Database):
                     profile_name = xml_data["Profile"]["Name"]
 
                     # write profile as json file for debugging
-                    #with open(f"E:\Dropbox\Family Room\Astrophotography\Data\profile-{profile_name}.json", "w") as f:
+                    #with open(f"C:\Users\jewza\Dropbox\Family Room\Astrophotography\Data\profile-{profile_name}.json", "w") as f:
                     #    f.write(xml_dump)
 
                     # find all filters

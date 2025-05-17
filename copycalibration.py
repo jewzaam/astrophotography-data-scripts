@@ -12,11 +12,11 @@ import common
 # [optional] move data with calibration data to next directory
 
 class CopyCalibration:
-    darks_required_properties=('exposureseconds', 'settemp', 'camera', 'gain', 'offset', 'type', 'readoutmode') # SQA55
-    #darks_required_properties=('exposureseconds', 'settemp', 'camera', 'gain', 'offset', 'type') # C8E
+    #darks_required_properties=('exposureseconds', 'settemp', 'camera', 'gain', 'offset', 'type', 'readoutmode') # SQA55
+    darks_required_properties=('exposureseconds', 'settemp', 'camera', 'gain', 'offset', 'type') # C8E
     #darks_required_properties=('exposureseconds', 'camera', 'gain', 'type') # Dwarf 3
-    flats_required_properties=('date', 'optic', 'filter', 'settemp', 'camera', 'gain', 'offset', 'type', 'readoutmode')
-    #flats_required_properties=('date', 'optic', 'filter', 'settemp', 'camera', 'gain', 'offset', 'type')
+    #flats_required_properties=('date', 'optic', 'filter', 'settemp', 'camera', 'gain', 'offset', 'type', 'readoutmode')
+    flats_required_properties=('date', 'optic', 'filter', 'settemp', 'camera', 'gain', 'offset', 'type')
     #flats_required_properties=('date', 'optic', 'filter', 'camera', 'gain', 'type')
 
     dest_light_dir=""

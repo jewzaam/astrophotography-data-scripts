@@ -1,10 +1,14 @@
 from codeop import CommandCompiler
-import inspect
 import os
 import shutil
 import re
 import json
 import xisf
+
+import zipfile
+from astropy.io import fits
+from io import BytesIO
+
 from astropy.io import fits
 from pathlib import Path
 from datetime import datetime, timedelta
@@ -478,14 +482,25 @@ def get_filtered_metadata(dirs:[str], filters:{}, profileFromPath:bool, patterns
 
     return metadata
 
-def get_filenames(dirs:[str], patterns=[".*\.fits$"], recursive=False):
+def get_filenames(dirs:[str], patterns=[".*\.fits$"], recursive=False, zips=False):
     filenames = []
     for pattern in patterns:
         for dir in dirs:
             dir=replace_env_vars(dir)
             if not recursive:
-                for filename in (filename for filename in os.listdir(dir) if re.search(pattern, filename)):
-                    filenames.append(os.path.join(dir, filename))
+                print(os.listdir(dir))
+                for filename in (filename for filename in os.listdir(dir) if re.search(pattern, filename) or (zips and zipfile.is_zipfile(filename))):
+                    # found a matching file or found a zip file
+                    filename_path = os.path.join(dir, filename)
+                    if zips and zipfile.is_zipfile(filename_path):
+                        # Process ZIP archive
+                        with zipfile.ZipFile(filename_path, 'r') as archive:
+                            for zip_filename in (filename for filename in archive.filelist if re.search(pattern, filename)):
+                                # add each contained filename that matches the pattern
+                                filenames.append(os.path(filename_path, zip_filename))
+                    else:
+                        # not a zip, simply add it
+                        filenames.append(filename_path)
             else:
                 for root, _, f_names in os.walk(dir):
                     for filename in (filename for filename in f_names if re.search(pattern, filename)):
@@ -494,7 +509,6 @@ def get_filenames(dirs:[str], patterns=[".*\.fits$"], recursive=False):
                             continue
                         filenames.append(os.path.join(root, filename))
     return filenames
-
 
 def get_metadata(dirs:[str], profileFromPath:bool, patterns=[".*\.fits$"], recursive=False, required_properties=[], debug=False, printStatus=False):
     _required_properties = list(required_properties)
