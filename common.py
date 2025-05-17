@@ -90,10 +90,18 @@ FILTER_NORMALIZATION_DATA = {
 
 # https://stackoverflow.com/questions/8347048/how-to-convert-string-to-title-case-in-python
 def camelCase(st):
+    """
+    Convert a string to camelCase, removing non-alphanumeric characters and capitalizing each word except the first.
+    """
     output = ''.join(x for x in st.title() if x.isalnum())
     return output[0].lower() + output[1:]
 
-def get_file_headers(filename:str, profileFromPath:bool, objectFromPath=True, normalize=True):
+
+def get_file_headers(filename: str, profileFromPath: bool, objectFromPath=True, normalize=True):
+    """
+    Extracts headers from a filename, optionally normalizing and extracting profile/object information from the path.
+    Handles special cases for certain header keys and file types.
+    """
     output = {
         "filename": filename, # before any name manipulations
     }
@@ -167,7 +175,11 @@ def get_file_headers(filename:str, profileFromPath:bool, objectFromPath=True, no
 
     return output
 
-def get_fits_headers(filename:str, profileFromPath:bool, normalize=True, file_naming_override=False):
+
+def get_fits_headers(filename: str, profileFromPath: bool, normalize=True, file_naming_override=False):
+    """
+    Extracts and normalizes FITS headers from a file, optionally overriding with headers from the filename.
+    """
     file_output = {}
     output = {}
 
@@ -190,7 +202,11 @@ def get_fits_headers(filename:str, profileFromPath:bool, normalize=True, file_na
         output = normalize_headers(output)
     return output
 
-def get_xisf_headers(filename:str, profileFromPath:bool, normalize=True, file_naming_override=False):
+
+def get_xisf_headers(filename: str, profileFromPath: bool, normalize=True, file_naming_override=False):
+    """
+    Extracts and normalizes XISF headers from a file, optionally overriding with headers from the filename.
+    """
     output = {}
 
     if file_naming_override:
@@ -212,12 +228,11 @@ def get_xisf_headers(filename:str, profileFromPath:bool, normalize=True, file_na
         output = normalize_headers(output)
     return output
 
-def normalize_filename(output_directory:str, input_filename:str, headers:{}, statedir:str):
-    """
-    Return normalized filename.
 
-    output_directory - output base directory
-    headers - all known headers
+def normalize_filename(output_directory: str, input_filename: str, headers: dict, statedir: str):
+    """
+    Constructs a normalized filename based on output directory, input filename, headers, and state directory.
+    Ensures required headers are present and builds a path with relevant metadata.
     """
 
     file_extension = os.path.splitext(input_filename)[1]
@@ -272,9 +287,10 @@ def normalize_filename(output_directory:str, input_filename:str, headers:{}, sta
 
     return output_filename
 
-def denormalize_header(header:str):
+
+def denormalize_header(header: str):
     """
-    Takes a normalized header and converts it back to the FITS header form.
+    Converts a normalized header name back to its original FITS header form if possible.
     """
     for dheader in FILTER_NORMALIZATION_DATA.keys():
         nheader = list(FILTER_NORMALIZATION_DATA[dheader].keys())[0]
@@ -284,7 +300,12 @@ def denormalize_header(header:str):
     # didn't find it..
     return None
 
-def normalize_target_name(input:str):
+
+def normalize_target_name(input: str):
+    """
+    Splits a target name into the main target and panel if present, removing single quotes.
+    Returns a list [target, panel].
+    """
     target = input
     panel = ""
     m = re.match("(.*) Panel (.*)", target)
@@ -297,14 +318,13 @@ def normalize_target_name(input:str):
     target = target.replace("'", "")
     return [target, panel]
 
-def normalize_headers(input:{}):
-    # rename_lookup
-    #   key = FITS header
-    #   value = {normalized header name: function for converstion}
-    # value can have multiple converstions
-    # Anything that is not in this has key changed to lower case.
-    # 
-    # also handles constants where some bit of data is static but not supplied
+
+def normalize_headers(input: dict):
+    """
+    Normalizes a dictionary of headers using FILTER_NORMALIZATION_DATA and CONSTANT_NORMALIZATION_DATA.
+    Converts keys to lower case if not found in normalization data.
+    Handles special cases for target name and constants.
+    """
 
     output = {}
     for key in input.keys():
@@ -331,7 +351,11 @@ def normalize_headers(input:{}):
                         output[ckey] = cvalue
     return output
 
-def replace_env_vars(input:str):
+
+def replace_env_vars(input: str):
+    """
+    Replaces environment variable placeholders in a string with their actual values from the OS environment.
+    """
     if input is None:
         return None
     output = input
@@ -346,8 +370,13 @@ def replace_env_vars(input:str):
             output_uc = output.upper()
     return output
 
+
 # 0=draft, 1=active, 2=inactive, 3=closed
-def project_status_from_path(path:str):
+def project_status_from_path(path: str):
+    """
+    Determines the project status code based on directory names in the path.
+    Returns 0=draft, 1=active, 2=inactive, 3=closed.
+    """
     status = 0
 
     if DIRECTORY_BLINK in path or DIRECTORY_DATA in path:
@@ -361,7 +390,11 @@ def project_status_from_path(path:str):
 
     return status
 
+
 def backup_scheduler_database(): # pragma: no cover
+    """
+    Creates a backup of the NINA Scheduler database to Dropbox.
+    """
     # create backup path
     Path(os.sep.join(BACKUP_TARGET_SCHEDULER.split(os.sep)[:-1])).mkdir(parents=True, exist_ok=True)
 
@@ -370,7 +403,12 @@ def backup_scheduler_database(): # pragma: no cover
 
     print("Target Scheduler database file backed up to Dropbox.")
 
-def simpleObject_to_csv(data:[{}], output_headers=True):
+
+def simpleObject_to_csv(data: list, output_headers=True):
+    """
+    Converts a list of dictionaries to a CSV string, optionally including headers.
+    Ensures deterministic key order for testing.
+    """
     output = ""
     header_printed=not output_headers
     # collect all keys, order is important for deterministic output (aka testing)
@@ -401,7 +439,11 @@ def simpleObject_to_csv(data:[{}], output_headers=True):
         output += "\n"
     return output
 
-def normalize_filterName(name:str):
+
+def normalize_filterName(name: str):
+    """
+    Normalizes filter names to standard short forms for known filters.
+    """
     output = name
     if name == "BaaderUVIRCut":
         output = "UVIR"
@@ -417,14 +459,26 @@ def normalize_filterName(name:str):
         output = "RGB"
     return output
 
-def normalize_date(date:str):
+
+def normalize_date(date: str):
+    """
+    Converts a date string to the standard output date format, adjusting for timezone offset.
+    """
     # TODO fix the timezone offset, it's hardcoded to account for UTC.  but it depends on where the data was acquired
     return datetime.strftime(datetime.strptime(date[:-4], INPUT_FORMAT_DATETIME) - timedelta(hours=16), OUTPUT_FORMAT_DATE)
 
-def normalize_datetime(date:str):
+
+def normalize_datetime(date: str):
+    """
+    Converts a date string to the standard output datetime format.
+    """
     return datetime.strftime(datetime.strptime(date[:-4], INPUT_FORMAT_DATETIME), OUTPUT_FORMAT_DATETIME)
 
-def move_file(from_file:str, to_file:str, debug=False, dryrun=False): # pragma: no cover
+
+def move_file(from_file: str, to_file: str, debug=False, dryrun=False): # pragma: no cover
+    """
+    Moves a file from one location to another, optionally printing debug info and supporting dry run mode.
+    """
     copy_file(
         from_file=from_file,
         to_file=to_file,
@@ -439,7 +493,12 @@ def move_file(from_file:str, to_file:str, debug=False, dryrun=False): # pragma: 
         # then delete old file
         os.remove(from_file)
 
-def copy_file(from_file:str, to_file:str, debug=False, dryrun=False): # pragma: no cover
+
+def copy_file(from_file: str, to_file: str, debug=False, dryrun=False): # pragma: no cover
+    """
+    Copies a file from one location to another, creating directories as needed.
+    Supports debug and dry run modes.
+    """
     to_dir = os.sep.join(to_file.split(os.sep)[:-1])
 
     if debug:
@@ -452,9 +511,10 @@ def copy_file(from_file:str, to_file:str, debug=False, dryrun=False): # pragma: 
         # copy the file
         shutil.copy2(from_file, to_file)
 
-def get_filtered_metadata(dirs:[str], filters:{}, profileFromPath:bool, patterns=[".*\.fits$"], recursive=False, required_properties=[], debug=False, printStatus=False):
+
+def get_filtered_metadata(dirs: list, filters: dict, profileFromPath: bool, patterns=[".*\.fits$"], recursive=False, required_properties=[], debug=False, printStatus=False):
     """
-    Get the metadata and then filter it.  Ensure all filters are required.
+    Loads metadata for files in given directories, then filters the metadata based on provided filters and required properties.
     """
 
     if required_properties is None:
@@ -482,7 +542,12 @@ def get_filtered_metadata(dirs:[str], filters:{}, profileFromPath:bool, patterns
 
     return metadata
 
-def get_filenames(dirs:[str], patterns=[".*\.fits$"], recursive=False, zips=False):
+
+def get_filenames(dirs: list, patterns=[".*\.fits$"], recursive=False, zips=False):
+    """
+    Returns a list of filenames in the given directories matching the provided patterns.
+    Supports recursive search and ZIP archive extraction.
+    """
     filenames = []
     for pattern in patterns:
         for dir in dirs:
@@ -510,7 +575,12 @@ def get_filenames(dirs:[str], patterns=[".*\.fits$"], recursive=False, zips=Fals
                         filenames.append(os.path.join(root, filename))
     return filenames
 
-def get_metadata(dirs:[str], profileFromPath:bool, patterns=[".*\.fits$"], recursive=False, required_properties=[], debug=False, printStatus=False):
+
+def get_metadata(dirs: list, profileFromPath: bool, patterns=[".*\.fits$"], recursive=False, required_properties=[], debug=False, printStatus=False):
+    """
+    Loads metadata for files in the given directories, ensuring all required properties are present.
+    Optionally prints status updates.
+    """
     _required_properties = list(required_properties)
     # 'targetname' is always required, simply to have a value of None...
     if 'targetname' not in _required_properties:
@@ -555,7 +625,12 @@ def get_metadata(dirs:[str], profileFromPath:bool, patterns=[".*\.fits$"], recur
         profileFromPath=profileFromPath,
     )
 
-def enrich_metadata(data:{}, profileFromPath:bool, required_properties=[], debug=False, printStatus=False):
+
+def enrich_metadata(data: dict, profileFromPath: bool, required_properties=[], debug=False, printStatus=False):
+    """
+    Enriches metadata for files missing required properties by extracting additional headers from the files themselves.
+    Optionally prints status updates.
+    """
     # list of filenames (key of data dict) that need enrichment
     to_enrich = []
 
@@ -621,7 +696,12 @@ def enrich_metadata(data:{}, profileFromPath:bool, required_properties=[], debug
 
     return data
 
-def filter_metadata(data:{}, filters:{}, debug=False):
+
+def filter_metadata(data: dict, filters: dict, debug=False):
+    """
+    Filters a metadata dictionary based on provided filter key/value pairs or functions.
+    Returns a new dictionary with only matching entries.
+    """
     # validate input filter data
     if filters is None or filters.keys() is None or len(filters.keys()) == 0:
         raise(Exception("Invalid filter data"))
@@ -703,13 +783,11 @@ def filter_metadata(data:{}, filters:{}, debug=False):
 
     return output
 
-def get_copy_list(data:{}, output_dir:str, filters:{}, debug=False):
-    """
-    Return array of tuples for (source, destination) to copy input data to output location.
 
-    data - the source data
-    output_dir - the directory to write files into
-    filters - key/value pairs for searching and grouping output
+def get_copy_list(data: dict, output_dir: str, filters: dict, debug=False):
+    """
+    Returns a list of (source, destination) tuples for copying files to an output location based on filters.
+    Constructs destination filenames using metadata and filter values.
     """
 
     if data is None or len(data) == 0:
@@ -768,8 +846,13 @@ def get_copy_list(data:{}, output_dir:str, filters:{}, debug=False):
 
     return output
 
+
 # TODO delete
 def copy_calibration_to_library(type="", calibration_dir="", library_dir="", group_by=[], delete_after_copy=False, debug=False, dryrun=False):
+    """
+    Copies calibration files from a calibration directory to a library directory, grouping by specified metadata fields.
+    Optionally deletes source files after copying.
+    """
     # find all masters in calibration directory
     data_calibration = get_filtered_metadata(
         dirs=[calibration_dir],
@@ -833,6 +916,10 @@ def copy_calibration_to_library(type="", calibration_dir="", library_dir="", gro
 
 
 def copy_calibration_to_lights(type="", calibration_dir="", lights_dir="", group_by=[], debug=False, dryrun=False):
+    """
+    Copies calibration files from a calibration directory to the appropriate light frame directories based on metadata.
+    Handles missing calibrations and prints warnings as needed.
+    """
     # copy calibration to lights
     # find all lights
     data_lights=get_filtered_metadata(
@@ -955,7 +1042,12 @@ def copy_calibration_to_lights(type="", calibration_dir="", lights_dir="", group
         for d in missing:
             print(f"    {dict(d)}")
 
-def delete_empty_directories(root_dir:str, dryrun=False): # pragma: no cover
+
+def delete_empty_directories(root_dir: str, dryrun=False): # pragma: no cover
+    """
+    Recursively deletes empty directories under the given root directory.
+    Supports dry run mode.
+    """
     root_dir=replace_env_vars(root_dir)
     print(f"delete_empty_directories({root_dir})")
     done = False
