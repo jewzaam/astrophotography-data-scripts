@@ -19,15 +19,27 @@ class SummaryData():
     debug:bool = False
     dryrun:bool = False
 
-    def __init__(self, db_ap:database.Astrophotgraphy, from_dir:str, debug:bool, dryrun:bool):
+    def __init__(self, db_ap: database.Astrophotgraphy, from_dir: str, debug: bool, dryrun: bool):
+        """
+        Initialize the SummaryData class.
+
+        Args:
+            db_ap (database.Astrophotgraphy): The astrophotography database instance.
+            from_dir (str): The directory to process for summaries.
+            debug (bool): If True, enables debug mode for verbose output.
+            dryrun (bool): If True, simulates the process without making changes.
+        """
         self.db_ap = db_ap
         self.from_dir = from_dir
         self.debug = debug
         self.dryrun = dryrun
 
-    def prepare_data(self) -> {str:str}:
+    def prepare_data(self) -> dict[str, str]:
         """
-        Return dict where key is the _target_ directory and value is dict with key/value pairs.
+        Prepare summary data by querying the database and organizing it by target directory.
+
+        Returns:
+            dict: A dictionary where the key is the target directory and the value is a list of key-value pairs.
         """
 
         output = {}
@@ -101,9 +113,12 @@ class SummaryData():
 
 class Astrobin(SummaryData):
 
-    def prepare_csv(self) -> {str:str}:
+    def prepare_csv(self) -> dict[str, str]:
         """
-        Return dict where key is the directory and value is CSV string.
+        Prepare CSV data for Astrobin by translating metadata into CSV format.
+
+        Returns:
+            dict: A dictionary where the key is the directory and the value is the CSV string.
         """
 
         output = {}
@@ -126,7 +141,14 @@ class Astrobin(SummaryData):
 
         return output
 
-    def write_csv(self, data:{}):
+    def write_csv(self, data: dict[str, str]):
+        """
+        Write the prepared CSV data to files in the corresponding directories.
+
+        Args:
+            data (dict): A dictionary where the key is the directory and the value is the CSV string.
+        """
+
         for directory in data.keys():
             data_csv = data[directory]
             filename_csv=os.path.join(directory, FILENAME_CSV)
@@ -146,7 +168,17 @@ class Totals(SummaryData):
     db_ts:database.Scheduler = None
     db_ap:database.Astrophotgraphy = None
 
-    def __init__(self, db_ap:database.Astrophotgraphy, db_ts:database.Scheduler, from_dir:str, debug:bool, dryrun:bool):
+    def __init__(self, db_ap: database.Astrophotgraphy, db_ts: database.Scheduler, from_dir: str, debug: bool, dryrun: bool):
+        """
+        Initialize the Totals class.
+
+        Args:
+            db_ap (database.Astrophotgraphy): The astrophotography database instance.
+            db_ts (database.Scheduler): The scheduler database instance.
+            from_dir (str): The directory to process for summaries.
+            debug (bool): If True, enables debug mode for verbose output.
+            dryrun (bool): If True, simulates the process without making changes.
+        """
         self.db_ap = db_ap
         self.db_ts = db_ts
         self.from_dir = from_dir
@@ -154,9 +186,12 @@ class Totals(SummaryData):
         self.dryrun = dryrun
 
 
-    def prepare_totals(self) -> {str:str}:
+    def prepare_totals(self) -> dict[str, str]:
         """
-        Return dict where key is the directory and value is various totals as key/value pairs.
+        Prepare totals data by calculating desired, available, and needed hours for each target.
+
+        Returns:
+            dict: A dictionary where the key is the directory and the value is a dictionary of totals.
         """
 
         try:
@@ -215,7 +250,14 @@ class Totals(SummaryData):
 
         return output
 
-    def write_totals(self, data:{}):
+    def write_totals(self, data: dict[str, str]):
+        """
+        Write the prepared totals data to files in the corresponding directories.
+
+        Args:
+            data (dict): A dictionary where the key is the directory and the value is the totals data.
+        """
+
         for directory in data.keys():
             totals = data[directory]
             filename_total=os.path.join(directory, FILENAME_TOTALS)
@@ -241,6 +283,13 @@ class Metadata():
     pass
 
 if __name__ == "__main__":
+    """
+    Main script execution for summarizing astrophotography data.
+
+    This script processes directories and databases to generate summaries and write them to files.
+    It supports command-line arguments for specifying the input directory, debug mode, and dry run mode.
+    """
+
     parser = argparse.ArgumentParser(description="upsert accepted images to AP database")
     parser.add_argument("--fromdir", required=True, type=str, help="directory to search for images")
     parser.add_argument("--debug", action='store_true')

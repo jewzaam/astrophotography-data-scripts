@@ -108,19 +108,48 @@ class Prepare():
         common.delete_empty_directories(os.path.join(self.input_dir), dryrun=self.dryrun)
 
 class Delete():
+    """
+    Handles the deletion of astrophotography files based on their type and metadata.
+
+    Attributes:
+        input_dir (str): The directory containing the input files.
+        input_pattern (str): The pattern to match input files.
+        debug (bool): Whether to enable debug mode.
+        dryrun (bool): Whether to perform a dry run without making actual changes.
+    """
+
     input_dir = None
     input_pattern = None
     debug = False
     dryrun = False
 
-    def __init__(self, input_dir:str, input_pattern:str,
-                 debug:bool, dryrun:bool):
+    def __init__(self, input_dir: str, input_pattern: str, debug: bool, dryrun: bool):
+        """
+        Initialize the Delete class with input directory, file pattern, debug mode, and dry run mode.
+
+        Args:
+            input_dir (str): The directory containing files to be deleted.
+            input_pattern (str): The pattern to match files for deletion.
+            debug (bool): If True, enables debug mode for verbose output.
+            dryrun (bool): If True, simulates deletion without actually removing files.
+        """
         self.input_dir = input_dir
         self.input_pattern = input_pattern
         self.debug=debug
         self.dryrun=dryrun
 
-    def _delete(self, type:str, recursive=False, printStatus=False):
+    def _delete(self, type: str, recursive: bool = False, printStatus: bool = False):
+        """
+        Delete files of a specific type based on metadata filters.
+
+        Args:
+            type (str): The type of files to delete (e.g., 'BIAS', 'DARK', 'FLAT', 'LIGHT').
+            recursive (bool, optional): If True, searches directories recursively. Defaults to False.
+            printStatus (bool, optional): If True, prints status messages during deletion. Defaults to False.
+
+        Raises:
+            Exception: If an unexpected image type is provided.
+        """
         # set required properties based on the image type
         rp = []
         if type == "BIAS" or type == "DARK":
@@ -158,10 +187,19 @@ class Delete():
 
 
     def bias(self):
+        """
+        Delete all files of type 'BIAS' in the input directory.
+        """
         self._delete('BIAS', recursive=True, printStatus=self.debug)
     
     def dark(self):
+        """
+        Delete all files of type 'DARK' in the input directory.
+        """
         self._delete('DARK', recursive=True, printStatus=self.debug)
     
     def flat(self):
+        """
+        Delete all files of type 'FLAT' in the input directory.
+        """
         self._delete('FLAT', recursive=True, printStatus=self.debug)

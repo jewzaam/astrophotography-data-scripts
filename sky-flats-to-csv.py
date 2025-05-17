@@ -1,6 +1,14 @@
 """
 This script analyzes sky flats and outputs the data to a CSV file for further analysis.
-It uses command-line arguments to specify input and output directories.
+
+It uses command-line arguments to specify input and output directories, processes metadata
+from FITS files, and writes the filtered data to a CSV file.
+
+Command-line Arguments:
+    --input_dir (str): Directory to search for images. Defaults to the root raw flat directory.
+    --output_csv (str): Path to the CSV file for output. Defaults to a predefined path.
+    --debug (bool): If set, enables debug mode for verbose output.
+    --dryrun (bool): If set, simulates the process without writing to the CSV file.
 """
 
 import argparse
@@ -38,7 +46,7 @@ if user_debug:
     print(data_flats)
 
 # convert data to array, drop key since it's already in the 'filename' attribute
-data_flattened = [] # yes, I get this is a bit ironic and possibly confusing. I like it, move along.
+data_flattened = []  # yes, I get this is a bit ironic and possibly confusing. I like it, move along.
 for key in data_flats:
     datum = data_flats[key]
     # keep a subset of attributes to make the data easier to work with

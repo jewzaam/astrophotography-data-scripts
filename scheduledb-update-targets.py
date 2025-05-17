@@ -1,6 +1,15 @@
 """
 This script updates target data in the NINA Scheduler database.
 It processes profile files and integrates them into the database.
+
+The script performs the following tasks:
+- Collects all profile file names from a specified directory.
+- Connects to the astrophotography and scheduler databases.
+- Processes target data from profile files and updates the database.
+- Handles specific profiles and their associated projects, targets, and exposure plans.
+
+Exceptions:
+    sqlite3.Error: Handles SQLite errors and ensures database connections are closed properly.
 """
 
 import os
@@ -378,6 +387,12 @@ try:
     common.backup_scheduler_database()
 
 except sqlite3.Error as e:
+    """
+    Handle SQLite errors and ensure database connections are closed properly.
+
+    Args:
+        e (sqlite3.Error): The SQLite error encountered during execution.
+    """
     if conn_ts is not None:
         conn_ts.close()
     if conn_ap is not None:

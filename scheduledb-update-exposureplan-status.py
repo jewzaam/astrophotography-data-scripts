@@ -9,6 +9,15 @@ import os
 
 # originally defined in common, but to reduce dependencies pulling it out.
 def replace_env_vars(input:str):
+    """
+    Replace environment variables in a given string with their actual values.
+
+    Args:
+        input (str): The input string containing environment variable placeholders (e.g., %VAR_NAME%).
+
+    Returns:
+        str: The input string with environment variables replaced by their corresponding values.
+    """
     output = input
     output_uc = input.upper()
     for e in os.environ.items():
@@ -22,6 +31,15 @@ def replace_env_vars(input:str):
     return output
 
 try:
+    """
+    Main script execution to update the exposure plan status in the NINA Scheduler database.
+
+    This script connects to the SQLite database, updates the `accepted` column in the `exposureplan` table
+    to match the `acquired` column, and commits the changes. It uses environment variables to locate the database file.
+
+    Exceptions:
+        sqlite3.Error: Handles SQLite errors and ensures the database connection is closed properly.
+    """
     conn_ts = sqlite3.connect(replace_env_vars(r"%LocalAppData%\NINA\SchedulerPlugin\schedulerdb.sqlite"))
     c_ts = conn_ts.cursor()
 

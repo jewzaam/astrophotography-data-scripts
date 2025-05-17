@@ -20,12 +20,29 @@ class Location():
     brightness = ""
     artifical_brightness = ""
 
-    def __init__(self, name:str, latitude:str, longitude:str):
+    def __init__(self, name: str, latitude: str, longitude: str):
+        """
+        Initialize a Location instance with name, latitude, and longitude.
+
+        Args:
+            name (str): The name of the location.
+            latitude (str): The latitude of the location.
+            longitude (str): The longitude of the location.
+        """
         self.name = name
         self.latitude = latitude
         self.longitude = longitude
 
     def loadData(self):
+        """
+        Load location data from an external API and parse relevant details.
+
+        Retrieves data such as magnitude, Bortle class, brightness, and artificial brightness
+        from the Clear Outside API based on the location's latitude and longitude.
+
+        Raises:
+            Exception: If the API response status code is not 200.
+        """
         r = requests.get(f"https://clearoutside.com/forecast/{self.latitude}/{self.longitude}")
         if r.status_code != 200:
             print(f"ERROR status code: {r.status_code}")
@@ -44,6 +61,12 @@ class Location():
                 self.artifical_brightness = m.groups()[3]
     
     def location_upsert_stmt(self):
+        """
+        Generate an SQL upsert statement for the location data.
+
+        Returns:
+            str: The SQL upsert statement for the location.
+        """
         insert_values = {
             "name": self.name,
             "latitude": self.latitude,
@@ -80,15 +103,33 @@ class LocationControl():
     ]
 
     def __init__(self):
+        """
+        Initialize the LocationControl class.
+
+        This class manages a list of predefined locations and provides methods
+        to load data and generate SQL upsert statements for all locations.
+        """
         pass
 
     def loadAllData(self):
+        """
+        Load data for all locations in the list.
+
+        This method iterates through all locations, calls their `loadData` method,
+        and enforces a delay to respect API rate limits.
+        """
         for l in self.locations:
             l.loadData()
             print("Sleeping for 15 seconds.  The site is rate limited.")
             time.sleep(15)
     
     def location_upsert_stmts(self):
+        """
+        Generate SQL upsert statements for all locations.
+
+        Returns:
+            list: A list of SQL upsert statements for all locations.
+        """
         output = []
         for l in self.locations:
             output.append(l.location_upsert_stmt())
@@ -96,6 +137,14 @@ class LocationControl():
 
 
 if __name__ == '__main__':
+    """
+    Main script execution for loading location data and updating the database.
+
+    This script initializes the database connection, loads data for all locations,
+    generates SQL upsert statements, and executes them in the database.
+
+    Handles exceptions and ensures the database connection is closed properly.
+    """
     d = database.Database(common.DATABASE_ASTROPHOTGRAPHY)
     try:
         l = LocationControl()

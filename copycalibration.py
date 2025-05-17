@@ -41,6 +41,20 @@ class CopyCalibration:
                  debug:bool, 
                  dryrun:bool
                 ):
+        """
+        Initializes the CopyCalibration class with source and destination directories for calibration files.
+
+        Parameters:
+        - dest_light_dir (str): Directory for light frames.
+        - src_bias_dir (str): Source directory for bias frames.
+        - src_dark_dir (str): Source directory for dark frames.
+        - src_flat_dir (str): Source directory for flat frames.
+        - dest_bias_dir (str): Destination directory for bias frames.
+        - dest_dark_dir (str): Destination directory for dark frames.
+        - dest_flat_dir (str): Destination directory for flat frames.
+        - debug (bool): Enable debug mode.
+        - dryrun (bool): Enable dry-run mode.
+        """
         self.dest_light_dir=common.replace_env_vars(dest_light_dir)
         self.src_bias_dir=common.replace_env_vars(src_bias_dir)
         self.src_dark_dir=common.replace_env_vars(src_dark_dir)
@@ -52,15 +66,12 @@ class CopyCalibration:
         self.dryrun=dryrun
 
 
-    def CopyFiles(self, copy_list:[]): # pragma: no cover
+    def CopyFiles(self, copy_list:list): # pragma: no cover
         """
-        Copies multiple files.  List is 2 dimensional.
-        [
-            [
-                from_file,
-                to_file
-            ]
-        ]
+        Copies multiple files from source to destination based on the provided list.
+
+        Parameters:
+        - copy_list (list): A 2D list where each sublist contains [from_file, to_file].
         """
 
         if copy_list is None or len(copy_list) == 0:
@@ -86,6 +97,13 @@ class CopyCalibration:
                 )
 
     def GetCopyList_to_dest_bias(self): # pragma: no cover
+        """
+        Generates a list of bias frames to copy from the source directory to the destination directory.
+
+        Returns:
+        - list: A list of files to copy, or None if source or destination directories are missing.
+        """
+
         if self.src_bias_dir is None or len(self.src_bias_dir) == 0 or self.dest_bias_dir is None or len(self.dest_bias_dir) == 0:
             # missing src or dest dirs, skip
             if self.debug:
@@ -123,6 +141,13 @@ class CopyCalibration:
         return copy_list
 
     def GetCopyList_to_dest_dark(self): # pragma: no cover
+        """
+        Generates a list of dark frames to copy from the source directory to the destination directory.
+
+        Returns:
+        - list: A list of files to copy, or None if source or destination directories are missing.
+        """
+
         if self.src_dark_dir is None or len(self.src_dark_dir) == 0 or self.dest_dark_dir is None or len(self.dest_dark_dir) == 0:
             # missing src or dest dirs, skip
             if self.debug:
@@ -160,6 +185,13 @@ class CopyCalibration:
         return copy_list
 
     def GetCopyList_to_dest_flat(self): # pragma: no cover
+        """
+        Generates a list of flat frames to copy from the source directory to the destination directory.
+
+        Returns:
+        - list: A list of files to copy, or None if source or destination directories are missing.
+        """
+
         if self.src_flat_dir is None or len(self.src_flat_dir) == 0 or self.dest_flat_dir is None or len(self.dest_flat_dir) == 0:
             # missing src or dest dirs, skip
             if self.debug:
@@ -206,7 +238,17 @@ class CopyCalibration:
 
         return output
 
-    def GetCopyList_darks_to_lights(self, required_properties:[str]): # pragma: no cover
+    def GetCopyList_darks_to_lights(self, required_properties:list): # pragma: no cover
+        """
+        Generates a list of dark frames to copy to light frame directories based on required properties.
+
+        Parameters:
+        - required_properties (list): A list of required metadata properties for matching dark frames to light frames.
+
+        Returns:
+        - list: A list of files to copy, or None if source or destination directories are missing.
+        """
+
         if self.src_dark_dir is None or len(self.src_dark_dir) == 0 or self.dest_light_dir is None or len(self.dest_light_dir) == 0:
             # missing src or dest dirs, skip
             if self.debug:
@@ -243,6 +285,16 @@ class CopyCalibration:
 
 
     def GetCopyList_flats_to_lights(self, required_properties=flats_required_properties): # pragma: no cover
+        """
+        Generates a list of flat frames to copy to light frame directories based on required properties.
+
+        Parameters:
+        - required_properties (list): A list of required metadata properties for matching flat frames to light frames.
+
+        Returns:
+        - list: A list of files to copy, or None if source or destination directories are missing.
+        """
+
         if self.src_flat_dir is None or len(self.src_flat_dir) == 0 or self.dest_light_dir is None or len(self.dest_light_dir) == 0:
             # missing src or dest dirs, skip
             if self.debug:
@@ -278,7 +330,19 @@ class CopyCalibration:
             required_properties=required_properties,
         )
 
-    def _getCopyList_to_lights(self, data_calibration:{}, data_lights:{}, required_properties:[]):
+    def _getCopyList_to_lights(self, data_calibration:dict, data_lights:dict, required_properties:list):
+        """
+        Internal method to generate a list of calibration files to copy to light frame directories.
+
+        Parameters:
+        - data_calibration (dict): Metadata of calibration files.
+        - data_lights (dict): Metadata of light frames.
+        - required_properties (list): A list of required metadata properties for matching calibration files to light frames.
+
+        Returns:
+        - list: A list of files to copy.
+        """
+
         # walk the lights and build set of filters required to search for calibration
         # TODO maybe move this into something like a "group_by_filter" function
         filters={}

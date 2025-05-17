@@ -14,10 +14,25 @@ class Report():
     db_scheduler = None
 
     def __init__(self):
+        """
+        Initialize the Report class.
+
+        This class connects to the astrophotography and scheduler databases
+        to generate reports and process data for various purposes.
+        """
         self.db_astrophotography = database.Database(common.DATABASE_ASTROPHOTGRAPHY)
         self.db_scheduler = database.Database(common.DATABASE_TARGET_SCHEDULER)
 
-    def _findData(self, like:str):
+    def _findData(self, like: str):
+        """
+        Query and aggregate data from the astrophotography database.
+
+        Args:
+            like (str): A string pattern to filter raw directories.
+
+        Returns:
+            dict: A dictionary where keys are directory paths and values are aggregated counts.
+        """
         try:
             self.db_astrophotography.open()
             stmt = f"select sum(accepted_count), raw_directory from accepted_data where raw_directory like '%{like}%' group by raw_directory;"
@@ -46,23 +61,56 @@ class Report():
             self.db_astrophotography.close()
 
     def data(self):
+        """
+        Retrieve data from the astrophotography database for the data acquisition folder.
+
+        Returns:
+            dict: Aggregated data for the data acquisition folder.
+        """
         return self._findData(common.DIRECTORY_DATA)
 
     def master(self):
+        """
+        Retrieve data from the astrophotography database for the master folder.
+
+        Returns:
+            dict: Aggregated data for the master folder.
+        """
         return self._findData(common.DIRECTORY_MASTER)
 
     def process(self):
+        """
+        Retrieve data from the astrophotography database for the process folder.
+
+        Returns:
+            dict: Aggregated data for the process folder.
+        """
         return self._findData(common.DIRECTORY_PROCESS)
 
     def bake(self):
+        """
+        Retrieve data from the astrophotography database for the bake folder.
+
+        Returns:
+            dict: Aggregated data for the bake folder.
+        """
         return self._findData(common.DIRECTORY_BAKE)
 
     def done(self):
+        """
+        Retrieve data from the astrophotography database for the done folder.
+
+        Returns:
+            dict: Aggregated data for the done folder.
+        """
         return self._findData(common.DIRECTORY_DONE)
 
     def data_ready_for_master(self):
         """
-        Find anything in data acquisition folder that is done and can be moved to the master folder.
+        Identify data in the acquisition folder that is ready to be moved to the master folder.
+
+        Returns:
+            list: A list of directory paths ready to be moved to the master folder.
         """
         data_dirs = self.data()
 
@@ -108,6 +156,12 @@ class Report():
             self.db_scheduler.close()
 
 if __name__ == "__main__":
+    """
+    Main script execution for generating reports and processing data.
+
+    This script initializes the Report class, retrieves data for specific folders,
+    and prints the results to the console.
+    """
     r = Report()
     loop = {
         #"master": r.master,
