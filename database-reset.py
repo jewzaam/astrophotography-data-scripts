@@ -1,3 +1,8 @@
+"""
+This script resets the astrophotography database by deleting all data from specific tables.
+It connects to the database and executes SQL commands to clear the data.
+"""
+
 import sqlite3
 
 import common

@@ -1,3 +1,8 @@
+"""
+This module provides classes and methods for preparing and organizing astrophotography files.
+It includes functionality for handling input and output directories and file patterns.
+"""
+
 import os
 import pathlib
 import re

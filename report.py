@@ -1,3 +1,8 @@
+"""
+This script generates reports based on data from the astrophotography and scheduler databases.
+It includes methods to query and process data for reporting purposes.
+"""
+
 import os
 import re
 import traceback

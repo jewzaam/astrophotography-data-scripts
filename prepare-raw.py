@@ -1,3 +1,8 @@
+"""
+This script prepares raw astrophotography data by organizing files into specific directories.
+It uses command-line arguments to specify input and output locations.
+"""
+
 import argparse
 
 import common

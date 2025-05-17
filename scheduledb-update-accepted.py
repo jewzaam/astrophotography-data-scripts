@@ -1,3 +1,8 @@
+"""
+This script updates the accepted counts in the NINA Scheduler database.
+It uses command-line arguments to enable debugging and dry-run modes.
+"""
+
 import argparse
 import re
 import sqlite3

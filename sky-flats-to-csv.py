@@ -1,3 +1,8 @@
+"""
+This script analyzes sky flats and outputs the data to a CSV file for further analysis.
+It uses command-line arguments to specify input and output directories.
+"""
+
 import argparse
 import os
 

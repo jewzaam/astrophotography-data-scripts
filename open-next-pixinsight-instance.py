@@ -1,3 +1,8 @@
+"""
+This script launches a new instance of PixInsight with an incremented instance number.
+It checks for existing instances and calculates the next available instance number.
+"""
+
 import subprocess
 import psutil
 

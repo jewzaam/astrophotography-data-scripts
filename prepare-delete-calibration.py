@@ -1,3 +1,8 @@
+"""
+This script deletes calibration files from specified directories.
+It uses command-line arguments to specify input directories and enable debugging or dry-run modes.
+"""
+
 import argparse
 import os
 import shutil

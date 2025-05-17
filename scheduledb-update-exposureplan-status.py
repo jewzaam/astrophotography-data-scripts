@@ -1,3 +1,8 @@
+"""
+This script updates the exposure plan status in the NINA Scheduler database.
+It uses environment variables to locate the database file.
+"""
+
 import sqlite3
 import traceback
 import os

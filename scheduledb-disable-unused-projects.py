@@ -1,3 +1,8 @@
+"""
+This script disables unused projects in the NINA Scheduler database.
+It uses command-line arguments to enable debugging and dry-run modes.
+"""
+
 import argparse
 import sqlite3
 import sys

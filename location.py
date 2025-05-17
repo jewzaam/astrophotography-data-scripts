@@ -1,3 +1,8 @@
+"""
+This module provides a class to represent and manage location data for astrophotography.
+It includes attributes for latitude, longitude, and other location-specific details.
+"""
+
 import re
 import time
 import traceback

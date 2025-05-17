@@ -1,3 +1,8 @@
+"""
+This script exports data from the NINA Scheduler database to a CSV file.
+It skips specific profiles based on predefined identifiers.
+"""
+
 import os
 import sqlite3
 import subprocess

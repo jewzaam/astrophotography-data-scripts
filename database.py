@@ -1,3 +1,8 @@
+"""
+This module provides a class for interacting with SQLite databases used in astrophotography data management.
+It includes methods for opening, querying, and managing database connections.
+"""
+
 import json
 import os
 import re

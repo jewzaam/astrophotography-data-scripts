@@ -1,3 +1,8 @@
+"""
+This script imports CSV data into the NINA Scheduler database.
+It connects to both the astrophotography and scheduler databases for data synchronization.
+"""
+
 import os
 import sqlite3
 import sys

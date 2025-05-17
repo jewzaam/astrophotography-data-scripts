@@ -1,3 +1,8 @@
+"""
+This script identifies and rejects astrophotography images that do not meet quality criteria.
+It organizes rejected images into a specified directory for further review.
+"""
+
 import os
 import argparse
 import statistics

@@ -1,3 +1,8 @@
+"""
+This script updates the astrophotography database with new or modified data.
+It uses command-line arguments to specify the mode of operation (create, delete, or update).
+"""
+
 import argparse
 
 import common

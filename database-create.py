@@ -1,3 +1,8 @@
+"""
+This script creates the schema and initial data for the astrophotography database.
+It uses predefined methods to set up profiles and filters in the database.
+"""
+
 import common
 import database
 

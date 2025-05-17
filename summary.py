@@ -1,3 +1,8 @@
+"""
+This script provides functionality to summarize astrophotography data.
+It includes classes and methods to process directories and databases for generating summaries.
+"""
+
 import argparse
 import json
 import os

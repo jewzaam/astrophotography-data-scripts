@@ -1,3 +1,8 @@
+"""
+This script updates target data in the NINA Scheduler database.
+It processes profile files and integrates them into the database.
+"""
+
 import os
 import re
 import sqlite3
