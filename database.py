@@ -66,9 +66,15 @@ class Database():
             self.conn = None
             self.curr = None
 
-    def _make_value(self, values:{str:str}):
+    def _make_value(self, values: dict[str, str]):
         """
-        for value clause, comma separated list of values in quotes
+        For value clause, create a comma-separated list of values in quotes.
+
+        Args:
+            values (dict): A dictionary of key-value pairs to process.
+
+        Returns:
+            str: A string of comma-separated values in quotes.
         """
         values_cleansed = []
         for v in values.values():
@@ -86,9 +92,15 @@ class Database():
             print(f"ERROR values_cleansed={values_cleansed}")
             raise e
 
-    def _make_where(self, where:{str:str}):
+    def _make_where(self, where: dict[str, str]):
         """
-        for where clause, "and" separated list of key='value'
+        For where clause, create an "and"-separated list of key='value'.
+
+        Args:
+            where (dict): A dictionary of key-value pairs for the WHERE clause.
+
+        Returns:
+            str: A string representing the WHERE clause.
         """
         where_stmts = []
         for key in where.keys():
@@ -101,9 +113,15 @@ class Database():
                 where_stmts.append(f"{key}='{value}'")
         return f"{' and '.join(where_stmts)}"
 
-    def _make_set(self, where:{str:str}):
+    def _make_set(self, where: dict[str, str]):
         """
-        for on conflict set clause, comma separated list of key='value'
+        For ON CONFLICT SET clause, create a comma-separated list of key='value'.
+
+        Args:
+            where (dict): A dictionary of key-value pairs for the SET clause.
+
+        Returns:
+            str: A string representing the SET clause.
         """
         set_stmts = []
         for key in where.keys():
@@ -113,10 +131,31 @@ class Database():
             set_stmts.append(f"{key}='{value}'")
         return f"{','.join(set_stmts)}"
 
-    def select_stmt(self, columns:list, table:str, where:{str:str}):
+    def select_stmt(self, columns: list[str], table: str, where: dict[str, str]):
+        """
+        Generate a SELECT statement.
+
+        Args:
+            columns (list): A list of column names to select.
+            table (str): The table name.
+            where (dict): A dictionary of key-value pairs for the WHERE clause.
+
+        Returns:
+            str: The generated SELECT statement.
+        """
         return f"select {','.join(columns)} from {table} where {self._make_where(where)};"
 
-    def select(self, stmt:str, columns:list) -> [{}]:
+    def select(self, stmt: str, columns: list[str]) -> list[dict]:
+        """
+        Execute a SELECT statement and return the results as a list of dictionaries.
+
+        Args:
+            stmt (str): The SELECT statement to execute.
+            columns (list): A list of column names.
+
+        Returns:
+            list: A list of dictionaries representing the query results.
+        """
         rows = self.execute(stmt)
         if self.dryrun:
             # simply return the raw response, which will be the generated statement
@@ -130,22 +169,78 @@ class Database():
                 output.append(f)
         return output
 
-    def insert_stmt(self, table:str, values:{str:str}, ignoreErrors=False):
+    def insert_stmt(self, table: str, values: dict[str, str], ignoreErrors=False):
+        """
+        Generate an INSERT statement.
+
+        Args:
+            table (str): The table name.
+            values (dict): A dictionary of key-value pairs to insert.
+            ignoreErrors (bool): Whether to ignore errors during insertion.
+
+        Returns:
+            str: The generated INSERT statement.
+        """
         ignore = ""
         if ignoreErrors:
             ignore = "or ignore "
         return f"insert {ignore}into {table} ({','.join(values.keys())}) values ({self._make_value(values)});"
 
-    def insert(self, table:str, values:{str:str}, ignoreErrors=False):
+    def insert(self, table: str, values: dict[str, str], ignoreErrors=False):
+        """
+        Execute an INSERT statement.
+
+        Args:
+            table (str): The table name.
+            values (dict): A dictionary of key-value pairs to insert.
+            ignoreErrors (bool): Whether to ignore errors during insertion.
+
+        Returns:
+            Any: The result of the INSERT operation.
+        """
         return self.execute(self.insert_stmt(table, values, ignoreErrors))
 
-    def upsert_stmt(self, table:str, insert_values:{str:str}, update_values:{str:str}, conflictColumns:[str]):
+    def upsert_stmt(self, table: str, insert_values: dict[str, str], update_values: dict[str, str], conflictColumns: list[str]):
+        """
+        Generate an UPSERT statement.
+
+        Args:
+            table (str): The table name.
+            insert_values (dict): A dictionary of key-value pairs to insert.
+            update_values (dict): A dictionary of key-value pairs to update on conflict.
+            conflictColumns (list): A list of columns to check for conflicts.
+
+        Returns:
+            str: The generated UPSERT statement.
+        """
         return f"insert into {table} ({','.join(insert_values.keys())}) values ({self._make_value(insert_values)}) on conflict ({','.join(conflictColumns)}) do update set {self._make_set(update_values)},last_updated_date=CURRENT_TIMESTAMP;"
 
-    def upsert(self, table:str, insert_values:{str:str}, update_values:{str:str}, conflictColumns:[str]):
+    def upsert(self, table: str, insert_values: dict[str, str], update_values: dict[str, str], conflictColumns: list[str]):
+        """
+        Execute an UPSERT statement.
+
+        Args:
+            table (str): The table name.
+            insert_values (dict): A dictionary of key-value pairs to insert.
+            update_values (dict): A dictionary of key-value pairs to update on conflict.
+            conflictColumns (list): A list of columns to check for conflicts.
+
+        Returns:
+            Any: The result of the UPSERT operation.
+        """
         return self.execute(self.upsert_stmt(table, insert_values, update_values, conflictColumns))
     
-    def delete(self, table:str, where:{str:str}):
+    def delete(self, table: str, where: dict[str, str]):
+        """
+        Execute a DELETE statement.
+
+        Args:
+            table (str): The table name.
+            where (dict): A dictionary of key-value pairs for the WHERE clause.
+
+        Returns:
+            Any: The result of the DELETE operation.
+        """
         stmt = f"delete from {table} where {self._make_where(where)};"
         return self.execute(stmt)
 
@@ -276,7 +371,7 @@ class Astrophotgraphy(Database):
         for stmt in self.createSchema:
             self.execute(stmt)
 
-    def CreateProfileStmts(self, profile_dir:str) -> [str]:
+    def CreateProfileStmts(self, profile_dir:str) -> list[str]:
         """
         Generate the statements to create profile data for all profiles in the given directory.
         Statements must be executed seperately.
