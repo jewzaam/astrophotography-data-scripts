@@ -64,6 +64,9 @@ class Prepare():
         for datum in data.values():
             filename_src=datum['filename']
             statedir=None
+            if 'type' not in datum:
+                print(f"WARNING: type not set in datum, skipping: {datum}")
+                continue
             if datum['type'] == 'LIGHT':
                 statedir = common.DIRECTORY_BLINK
             filename_dest=common.normalize_filename(
