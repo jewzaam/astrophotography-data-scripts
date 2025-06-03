@@ -48,7 +48,8 @@ try:
                 print(f"ERROR reading file {filename}")
                 traceback.print_exc()
 
-        targetname_with_panel=raw_data["Target"]["TargetName"].replace("\"", "'")
+        targetname_with_panel=raw_data["Target"]["TargetName"].replace("\"", "")
+        targetname_with_panel=targetname_with_panel.replace("'", "")
 
         # find panel name (if it exists)
         m = re.match("(.*) Panel (.*)", targetname_with_panel)
