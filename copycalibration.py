@@ -15,9 +15,9 @@ class CopyCalibration:
     #darks_required_properties=('exposureseconds', 'settemp', 'camera', 'gain', 'offset', 'type', 'readoutmode') # SQA55
     darks_required_properties=('exposureseconds', 'settemp', 'camera', 'gain', 'offset', 'type') # C8E
     #darks_required_properties=('exposureseconds', 'camera', 'gain', 'type') # Dwarf 3
-    #flats_required_properties=('date', 'optic', 'filter', 'settemp', 'camera', 'gain', 'offset', 'type', 'readoutmode')
-    flats_required_properties=('date', 'optic', 'filter', 'settemp', 'camera', 'gain', 'offset', 'type')
-    #flats_required_properties=('date', 'optic', 'filter', 'camera', 'gain', 'type')
+    #flats_required_properties=('date', 'optic', 'filter', 'settemp', 'camera', 'gain', 'offset', 'type', 'readoutmode') # SQA55
+    flats_required_properties=('date', 'optic', 'filter', 'settemp', 'camera', 'gain', 'offset', 'type') # C8E
+    #flats_required_properties=('date', 'optic', 'filter', 'camera', 'gain', 'type') # Dwarf 3
 
     dest_light_dir=""
     src_bias_dir=""
