@@ -13,11 +13,14 @@ import common
 
 class CopyCalibration:
     #darks_required_properties=('exposureseconds', 'settemp', 'camera', 'gain', 'offset', 'type', 'readoutmode') # SQA55
-    darks_required_properties=('exposureseconds', 'settemp', 'camera', 'gain', 'offset', 'type') # C8E
+    #darks_required_properties=('exposureseconds', 'settemp', 'camera', 'gain', 'offset', 'type') # C8E
     #darks_required_properties=('exposureseconds', 'camera', 'gain', 'type') # Dwarf 3
     #flats_required_properties=('date', 'optic', 'filter', 'settemp', 'camera', 'gain', 'offset', 'type', 'readoutmode') # SQA55
-    flats_required_properties=('date', 'optic', 'filter', 'settemp', 'camera', 'gain', 'offset', 'type') # C8E
+    #flats_required_properties=('date', 'optic', 'filter', 'settemp', 'camera', 'gain', 'offset', 'type') # C8E
     #flats_required_properties=('date', 'optic', 'filter', 'camera', 'gain', 'type') # Dwarf 3
+
+    darks_required_properties=[]
+    flats_required_properties=[]
 
     dest_light_dir=""
     src_bias_dir=""
@@ -39,7 +42,9 @@ class CopyCalibration:
                  dest_dark_dir:str,
                  dest_flat_dir:str,
                  debug:bool, 
-                 dryrun:bool
+                 dryrun:bool,
+                 darks_required_properties:list,
+                 flats_required_properties:list
                 ):
         """
         Initializes the CopyCalibration class with source and destination directories for calibration files.
@@ -54,6 +59,8 @@ class CopyCalibration:
         - dest_flat_dir (str): Destination directory for flat frames.
         - debug (bool): Enable debug mode.
         - dryrun (bool): Enable dry-run mode.
+        - darks_required_properties (list): Required properties for darks.
+        - flats_required_properties (list): Required properties for flats.
         """
         self.dest_light_dir=common.replace_env_vars(dest_light_dir)
         self.src_bias_dir=common.replace_env_vars(src_bias_dir)
@@ -64,6 +71,8 @@ class CopyCalibration:
         self.dest_flat_dir=common.replace_env_vars(dest_flat_dir)
         self.debug=debug
         self.dryrun=dryrun
+        self.darks_required_properties = darks_required_properties
+        self.flats_required_properties = flats_required_properties
 
 
     def CopyFiles(self, copy_list:list): # pragma: no cover
@@ -434,8 +443,15 @@ if __name__ == '__main__': # pragma: no cover
     parser.add_argument("--debug", action='store_true')
     parser.add_argument("--dryrun", action='store_true')
 
-    # treat args parsed as a dictionary
+    parser.add_argument("--darks_required_properties", type=str, help="Comma-delimited string of required properties for darks, optional")
+    parser.add_argument("--flats_required_properties", type=str, help="Comma-delimited string of required properties for flats, optional")
+
+    # Parse the arguments
     args = vars(parser.parse_args())
+
+    # Convert comma-delimited strings to lists if provided, otherwise set to None
+    darks_required_properties = args["darks_required_properties"].split(",") if args["darks_required_properties"] else None
+    flats_required_properties = args["flats_required_properties"].split(",") if args["flats_required_properties"] else None
 
     cc = CopyCalibration(
         src_bias_dir=args["src_bias_dir"],
@@ -447,6 +463,8 @@ if __name__ == '__main__': # pragma: no cover
         dest_light_dir=args["dest_light_dir"],
         debug=args["debug"],
         dryrun=args["dryrun"],
+        darks_required_properties=darks_required_properties,
+        flats_required_properties=flats_required_properties
     )
 
     # src bias to dest bias
