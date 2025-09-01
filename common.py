@@ -260,7 +260,13 @@ def normalize_filename(output_directory: str, input_filename: str, headers: dict
     if type == "LIGHT":
         if statedir is not None and len(statedir) > 0:
             output.append(statedir)
-        output.append(headers['targetname'])
+        try:
+            # if there is no targetname this may be a snapshot.  ignore it and move on.
+            output.append(headers['targetname'])
+        except KeyError as e:
+            print(f"WARNING: missing targetname for LIGHT file, perhaps is a snapshot file: {input_filename}")
+            print(f"WARNING: {headers}")
+            raise e
 
     # for all types...
     output.append(f"DATE_{headers['date']}")
@@ -465,15 +471,48 @@ def normalize_date(date: str):
     Converts a date string to the standard output date format, adjusting for timezone offset.
     """
     # TODO fix the timezone offset, it's hardcoded to account for UTC.  but it depends on where the data was acquired
-    return datetime.strftime(datetime.strptime(date[:-4], INPUT_FORMAT_DATETIME) - timedelta(hours=16), OUTPUT_FORMAT_DATE)
-
+    # Handle different date string formats
+    date_str = date
+    
+    # Remove timezone info if present (everything after the last 'Z' or '+'/'-')
+    if 'Z' in date_str or '+' in date_str or date_str.count('-') > 2:
+        # Keep only the date and time part
+        date_str = date_str.split('Z')[0].split('+')[0].split('-', 3)[0:3]
+        if isinstance(date_str, list):
+            date_str = '-'.join(date_str[:3])
+    
+    # Handle fractional seconds by truncating to whole seconds
+    if '.' in date_str:
+        date_str = date_str.split('.')[0]
+    
+    # Parse the date and apply timezone offset
+    parsed_date = datetime.strptime(date_str, INPUT_FORMAT_DATETIME)
+    adjusted_date = parsed_date - timedelta(hours=16)
+    
+    return datetime.strftime(adjusted_date, OUTPUT_FORMAT_DATE)
 
 def normalize_datetime(date: str):
     """
     Converts a date string to the standard output datetime format.
     """
-    return datetime.strftime(datetime.strptime(date[:-4], INPUT_FORMAT_DATETIME), OUTPUT_FORMAT_DATETIME)
-
+    # Handle different date string formats
+    date_str = date
+    
+    # Remove timezone info if present (everything after the last 'Z' or '+'/'-')
+    if 'Z' in date_str or '+' in date_str or date_str.count('-') > 2:
+        # Keep only the date and time part
+        date_str = date_str.split('Z')[0].split('+')[0].split('-', 3)[0:3]
+        if isinstance(date_str, list):
+            date_str = '-'.join(date_str[:3])
+    
+    # Handle fractional seconds by truncating to whole seconds
+    if '.' in date_str:
+        date_str = date_str.split('.')[0]
+    
+    # Parse the date and format as datetime
+    parsed_date = datetime.strptime(date_str, INPUT_FORMAT_DATETIME)
+    
+    return datetime.strftime(parsed_date, OUTPUT_FORMAT_DATETIME)
 
 def move_file(from_file: str, to_file: str, debug=False, dryrun=False): # pragma: no cover
     """
