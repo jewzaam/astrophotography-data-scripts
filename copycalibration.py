@@ -196,6 +196,7 @@ class CopyCalibration:
     def GetCopyList_to_dest_flat(self): # pragma: no cover
         """
         Generates a list of flat frames to copy from the source directory to the destination directory.
+        Flats are organized into date-based subdirectories with DATE removed from the filename.
 
         Returns:
         - list: A list of files to copy, or None if source or destination directories are missing.
@@ -220,30 +221,44 @@ class CopyCalibration:
             profileFromPath=False,
         )
 
-        copy_list=common.get_copy_list(
-            data=src_data,
-            output_dir=self.dest_flat_dir,
-            filters={
-                "type":"MASTER FLAT",
-                "camera": filter_any,
-                "optic": filter_any,
-                "date": filter_any,
-                "filter": filter_any,
-                "settemp": filter_any,
-                "gain": filter_any,
-                "offset": filter_any,
-                "focallen": filter_any,
-                "readoutmode": filter_any,
-            },
-            debug=self.debug,
-        )
-
-        # Replace "DATE-OBS" with "DATE".  This is set because of reverse filter name mappings.
+        # Process each flat file individually to create date-based subdirectories
         output = []
-        for flat in copy_list:
-            src=flat[0]
-            dest=flat[1].replace("DATE-OBS", "DATE")
-            output.append([src,dest])
+        for from_file in src_data.keys():
+            datum = src_data[from_file]
+            
+            # Skip if no date available
+            if 'date' not in datum or datum['date'] is None:
+                if self.debug:
+                    print(f"DEBUG skipping flat with no date: {from_file}")
+                continue
+            
+            # Create date-based subdirectory
+            date_subdir = f"DATE_{datum['date']}"
+            
+            # Build filename without DATE
+            output_filename_only = f"{common.camelCase(datum['type'])}"
+            
+            # Add all properties except 'type', 'camera', 'optic', and 'date' to filename
+            for key in ['filter', 'settemp', 'gain', 'offset', 'focallen', 'readoutmode']:
+                if key in datum and datum[key] is not None:
+                    # Map to FITS header names
+                    p = common.denormalize_header(key)
+                    if p is None:
+                        p = str(key).upper()
+                    output_filename_only += f"_{p}_{datum[key]}"
+            
+            # Add file extension
+            output_filename_only += os.path.splitext(from_file)[1]
+            
+            # Build full destination path: {dest_flat_dir}/{camera}[/{optic}]/{date_subdir}/{filename}
+            dest_path_parts = [self.dest_flat_dir, datum['camera']]
+            if 'optic' in datum and datum['optic'] is not None and len(datum['optic']) > 0:
+                dest_path_parts.append(datum['optic'])
+            dest_path_parts.append(date_subdir)
+            dest_path_parts.append(output_filename_only)
+            
+            dest_file = os.path.normpath(os.sep.join(dest_path_parts))
+            output.append([from_file, dest_file])
 
         return output
 

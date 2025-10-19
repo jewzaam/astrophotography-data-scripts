@@ -485,9 +485,19 @@ def normalize_date(date: str):
     if '.' in date_str:
         date_str = date_str.split('.')[0]
     
-    # Parse the date and apply timezone offset
-    parsed_date = datetime.strptime(date_str, INPUT_FORMAT_DATETIME)
-    adjusted_date = parsed_date - timedelta(hours=16)
+    # Try to parse as datetime first, then as date-only if that fails
+    try:
+        parsed_date = datetime.strptime(date_str, INPUT_FORMAT_DATETIME)
+        adjusted_date = parsed_date - timedelta(hours=16)
+    except ValueError:
+        # If datetime parsing fails, try date-only format
+        try:
+            parsed_date = datetime.strptime(date_str, OUTPUT_FORMAT_DATE)
+            # For date-only, don't apply timezone offset since there's no time component
+            adjusted_date = parsed_date
+        except ValueError:
+            # If both fail, return the original string
+            return date_str
     
     return datetime.strftime(adjusted_date, OUTPUT_FORMAT_DATE)
 
@@ -509,8 +519,18 @@ def normalize_datetime(date: str):
     if '.' in date_str:
         date_str = date_str.split('.')[0]
     
-    # Parse the date and format as datetime
-    parsed_date = datetime.strptime(date_str, INPUT_FORMAT_DATETIME)
+    # Try to parse as datetime first, then as date-only if that fails
+    try:
+        parsed_date = datetime.strptime(date_str, INPUT_FORMAT_DATETIME)
+    except ValueError:
+        # If datetime parsing fails, try date-only format
+        try:
+            parsed_date = datetime.strptime(date_str, OUTPUT_FORMAT_DATE)
+            # For date-only, set time to midnight
+            parsed_date = parsed_date.replace(hour=0, minute=0, second=0)
+        except ValueError:
+            # If both fail, return the original string
+            return date_str
     
     return datetime.strftime(parsed_date, OUTPUT_FORMAT_DATETIME)
 
