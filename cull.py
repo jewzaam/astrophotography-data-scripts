@@ -64,13 +64,13 @@ if __name__ == '__main__':
     user_rejectdir = args["rejectdir"]
     user_maxhfr = args["max_hfr"]
     user_maxrms = args["max_rms"]
-    user_autoyespercent = args["auto_yes_percent"]
+    user_autoyespercent = args["auto_yes_percent"] or -1 # default to no auto accept, -1
     user_debug = args["debug"]
     user_dryrun = args["dryrun"]
 
     data = common.get_metadata(
         dirs=[user_srcdir],
-        patterns=[".*\.fits$"],
+        patterns=[r".*\.fits$"],
         recursive=True,
         required_properties=[],
         debug=user_debug,

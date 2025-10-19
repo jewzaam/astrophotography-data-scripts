@@ -124,7 +124,7 @@ class CopyCalibration:
         # find new bias to copy from src to dest
         src_data = common.get_filtered_metadata(
             dirs=[self.src_bias_dir],
-            patterns=[".*\.xisf$"],
+            patterns=[r".*\.xisf$"],
             recursive=True,
             required_properties=[],
             filters={"type": "MASTER BIAS"},
@@ -168,7 +168,7 @@ class CopyCalibration:
         # find new dark to copy from src to dest
         src_data = common.get_filtered_metadata(
             dirs=[self.src_dark_dir],
-            patterns=[".*\.xisf$"],
+            patterns=[r".*\.xisf$"],
             recursive=True,
             required_properties=[],
             filters={"type": "MASTER DARK"},
@@ -212,7 +212,7 @@ class CopyCalibration:
         # find new flat to copy from src to dest
         src_data = common.get_filtered_metadata(
             dirs=[self.src_flat_dir],
-            patterns=[".*\.xisf$"],
+            patterns=[r".*\.xisf$"],
             recursive=True,
             required_properties=[],
             filters={"type": "MASTER FLAT"},
@@ -267,7 +267,7 @@ class CopyCalibration:
         # find dark
         src_dark = common.get_filtered_metadata(
             dirs=[self.src_dark_dir],
-            patterns=[".*\.xisf$"],
+            patterns=[r".*\.xisf$"],
             recursive=True,
             required_properties=required_properties,
             filters={"type": "MASTER DARK"},
@@ -278,7 +278,7 @@ class CopyCalibration:
         # find lights
         dest_light = common.get_filtered_metadata(
             dirs=[self.dest_light_dir],
-            patterns=[".*\.cr2$", ".*\.fits$"],
+            patterns=[r".*\.cr2$", r".*\.fits$"],
             recursive=True,
             required_properties=required_properties,
             filters={"type": "LIGHT"},
@@ -314,7 +314,7 @@ class CopyCalibration:
         # find flats in calibration
         src_flat = common.get_filtered_metadata(
             dirs=[self.src_flat_dir],
-            patterns=[".*\.fits$", ".*\.xisf$"],
+            patterns=[r".*\.fits$", r".*\.xisf$"],
             recursive=True,
             required_properties=required_properties,
             filters={"type": "MASTER FLAT"},
@@ -325,7 +325,7 @@ class CopyCalibration:
         # find lights
         dest_light = common.get_filtered_metadata(
             dirs=[self.dest_light_dir],
-            patterns=[".*\.cr2$", ".*\.fits$"],
+            patterns=[r".*\.cr2$", r".*\.fits$"],
             recursive=True,
             required_properties=required_properties,
             filters={"type": "LIGHT"},

@@ -551,7 +551,7 @@ def copy_file(from_file: str, to_file: str, debug=False, dryrun=False): # pragma
         shutil.copy2(from_file, to_file)
 
 
-def get_filtered_metadata(dirs: list, filters: dict, profileFromPath: bool, patterns=[".*\.fits$"], recursive=False, required_properties=[], debug=False, printStatus=False):
+def get_filtered_metadata(dirs: list, filters: dict, profileFromPath: bool, patterns=[r".*\.fits$"], recursive=False, required_properties=[], debug=False, printStatus=False):
     """
     Loads metadata for files in given directories, then filters the metadata based on provided filters and required properties.
     """
@@ -582,7 +582,7 @@ def get_filtered_metadata(dirs: list, filters: dict, profileFromPath: bool, patt
     return metadata
 
 
-def get_filenames(dirs: list, patterns=[".*\.fits$"], recursive=False, zips=False):
+def get_filenames(dirs: list, patterns=[r".*\.fits$"], recursive=False, zips=False):
     """
     Returns a list of filenames in the given directories matching the provided patterns.
     Supports recursive search and ZIP archive extraction.
@@ -615,7 +615,7 @@ def get_filenames(dirs: list, patterns=[".*\.fits$"], recursive=False, zips=Fals
     return filenames
 
 
-def get_metadata(dirs: list, profileFromPath: bool, patterns=[".*\.fits$"], recursive=False, required_properties=[], debug=False, printStatus=False):
+def get_metadata(dirs: list, profileFromPath: bool, patterns=[r".*\.fits$"], recursive=False, required_properties=[], debug=False, printStatus=False):
     """
     Loads metadata for files in the given directories, ensuring all required properties are present.
     Optionally prints status updates.
@@ -895,7 +895,7 @@ def copy_calibration_to_library(type="", calibration_dir="", library_dir="", gro
     # find all masters in calibration directory
     data_calibration = get_filtered_metadata(
         dirs=[calibration_dir],
-        patterns=[".*\.xisf$"],
+        patterns=[r".*\.xisf$"],
         recursive=True,
         required_properties=group_by,
         filters={"type": type},
@@ -963,7 +963,7 @@ def copy_calibration_to_lights(type="", calibration_dir="", lights_dir="", group
     # find all lights
     data_lights=get_filtered_metadata(
         dirs=[lights_dir],
-        patterns=[".*\.cr2$", ".*\.fits$"],
+        patterns=[r".*\.cr2$", r".*\.fits$"],
         recursive=True,
         required_properties=group_by,
         filters={"type": "LIGHT"},
@@ -1015,7 +1015,7 @@ def copy_calibration_to_lights(type="", calibration_dir="", lights_dir="", group
         # is the master already in the target directory?
         data_calibration_in_lights = get_filtered_metadata(
             dirs=[directory],
-            patterns=[".*\.xisf$"],
+            patterns=[r".*\.xisf$"],
             recursive=True,
             filters=calibration_filter,
             debug=debug,
@@ -1026,7 +1026,7 @@ def copy_calibration_to_lights(type="", calibration_dir="", lights_dir="", group
             # no master found, copy it
             data_calibration_in_library = get_filtered_metadata(
                 dirs=[calibration_dir],
-                patterns=[".*\.xisf$"],
+                patterns=[r".*\.xisf$"],
                 recursive=True,
                 filters=calibration_filter,
                 debug=debug,

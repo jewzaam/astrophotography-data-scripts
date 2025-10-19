@@ -36,7 +36,7 @@ print(f"Reading data for sky flats...")
 
 data_flats = common.get_filtered_metadata(
     dirs=[user_input_dir],
-    patterns=[".*\.fits$"],
+    patterns=[r".*\.fits$"],
     recursive=True,
     filters={"type": "FLAT"},
     profileFromPath=True,

@@ -536,7 +536,7 @@ class Astrophotgraphy(Database):
             # else, ignore
             filenames = common.get_filenames(
                 dirs=[from_dir],
-                patterns=[".*\.fits$", ".*\.cr2$"],
+                patterns=[r".*\.fits$", r".*\.cr2$"],
                 recursive=True,
             )
 
@@ -579,7 +579,7 @@ class Astrophotgraphy(Database):
             # fetch all lights metadata for cr2 and fits image files
             data = common.get_filtered_metadata(
                 dirs=from_dirs, 
-                patterns=[".*\.cr2$",".*\.fits$"], 
+                patterns=[r".*\.cr2$", r".*\.fits$"], 
                 recursive=True, 
                 required_properties=required_properties, 
                 filters={"type": "LIGHT"},

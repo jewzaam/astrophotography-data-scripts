@@ -29,7 +29,7 @@ filenames = []
 
 for root, d_names, f_names in os.walk(common.DIRECTORY_NINA_PROFILES):
     for f in f_names:
-        filenames.append(os.path.normpath(f"{root}\{f}"))
+        filenames.append(os.path.normpath(f"{root}\\{f}"))
 
 
 # connect to the 2 databases

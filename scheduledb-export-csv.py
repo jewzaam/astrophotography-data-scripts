@@ -132,7 +132,7 @@ try:
 
         # open the csv.. assume since we created it we want to edit
         print(f"Opening CSV for profile '{profile_id}' / {profile_name}")
-        p = subprocess.Popen(["C:\Program Files\LibreOffice\program\scalc.exe", filename_csv])
+        p = subprocess.Popen([r"C:\Program Files\LibreOffice\program\scalc.exe", filename_csv])
         # wait for it to finish, can then chain import
         p.wait()
 
