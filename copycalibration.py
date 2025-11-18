@@ -75,12 +75,13 @@ class CopyCalibration:
         self.flats_required_properties = flats_required_properties
 
 
-    def CopyFiles(self, copy_list:list): # pragma: no cover
+    def CopyFiles(self, copy_list:list, overwrite:bool=False): # pragma: no cover
         """
         Copies multiple files from source to destination based on the provided list.
 
         Parameters:
         - copy_list (list): A 2D list where each sublist contains [from_file, to_file].
+        - overwrite (bool): If True, overwrite existing files. If False, skip existing files.
         """
 
         if copy_list is None or len(copy_list) == 0:
@@ -93,8 +94,8 @@ class CopyCalibration:
             if from_file is None:
                 print(f"MISSING calibration for: {to_file}")
             else:
-                # don't copy file if it already exists.
-                if os.path.isfile(to_file):
+                # don't copy file if it already exists (unless overwrite is True).
+                if not overwrite and os.path.isfile(to_file):
                     if self.debug:
                         print(f"DEBUG skipping file that exists: {to_file}")
                     continue
@@ -483,10 +484,10 @@ if __name__ == '__main__': # pragma: no cover
     )
 
     # src bias to dest bias
-    cc.CopyFiles(cc.GetCopyList_to_dest_bias())
+    cc.CopyFiles(cc.GetCopyList_to_dest_bias(), overwrite=True)
 
     # src dark to dest dark
-    cc.CopyFiles(cc.GetCopyList_to_dest_dark())
+    cc.CopyFiles(cc.GetCopyList_to_dest_dark(), overwrite=True)
 
     # src flat to dest flat
     cc.CopyFiles(cc.GetCopyList_to_dest_flat())
