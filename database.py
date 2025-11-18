@@ -302,10 +302,13 @@ class Astrophotgraphy(Database):
                                     id integer PRIMARY KEY,
                                     name text NOT NULL,
                                     astrobin_id integer,
+                                    profile_id text,
+                                    valid_from text NOT NULL,
+                                    valid_to text,
                                     creation_date DATETIME DEFAULT CURRENT_TIMESTAMP,
                                     last_updated_date DATETIME DEFAULT CURRENT_TIMESTAMP
                                 );""",
-        "CREATE UNIQUE INDEX IF NOT EXISTS filter1 ON filter(name);",
+        "CREATE UNIQUE INDEX IF NOT EXISTS filter1 ON filter(name, profile_id, valid_from);",
         """CREATE TABLE IF NOT EXISTS accepted_data (
                                     id integer PRIMARY KEY,
                                     date text NOT NULL,
@@ -339,23 +342,74 @@ class Astrophotgraphy(Database):
         {"name": "KDDS", "latitude": "39.6", "longitude": "-104.0"}
     ]
 
-    defaultFilters = {
-        "L": {"name": "L", "astrobin_id": "2625"},
-        "R": {"name": "R", "astrobin_id": "2627"},
-        "G": {"name": "G", "astrobin_id": "2626"},
-        "B": {"name": "B", "astrobin_id": "2628"},
-        "S": {"name": "S", "astrobin_id": "2629"},
-        "H": {"name": "H", "astrobin_id": "2631"},
-        "O": {"name": "O", "astrobin_id": "2630"},
-        "UVIR": {"name": "UVIR", "astrobin_id": "2411"},
-        "LenHa": {"name": "LenHa", "astrobin_id": "5500"},
-        "LeXtr": {"name": "LeXtr", "astrobin_id": "2618"},
-        "ALPT": {"name": "ALPT", "astrobin_id": "5678"},
-    }
 
+    """
+    "UNUSED": [
+        {
+            "filters": {
+                "UVIR": {"name": "UVIR", "astrobin_id": "2411"},
+                "LenHa": {"name": "LenHa", "astrobin_id": "5500"},
+                "LeXtr": {"name": "LeXtr", "astrobin_id": "2618"},
+                "ALPT": {"name": "ALPT", "astrobin_id": "5678"},
+            }
+        }
+    ],
+    """
+
+    # Profile-specific filter mappings with date ranges
+    # Structure: profile_id -> list of filter sets, each with required valid_from and optional valid_to dates
+    # valid_from is required - use an early date like "2000-01-01" for filters that have always been valid
+    # valid_to is optional - if None, the filter set has no end date
+    # NOTE filter sets cannot overlap.  An update to a subset of filters must be represented as a completely new set of filters.
+    profileFilters = {
+        "8c4179b3-edf2-40d2-8a3a-b13d15cc49d5": [
+            {
+                "valid_from": "2000-01-01",
+                "valid_to": None,
+                "filters": {
+                    "L": {"name": "L", "astrobin_id": "2625"},
+                    "R": {"name": "R", "astrobin_id": "2627"},
+                    "G": {"name": "G", "astrobin_id": "2626"},
+                    "B": {"name": "B", "astrobin_id": "2628"},
+                    "S": {"name": "S", "astrobin_id": "2629"},
+                    "H": {"name": "H", "astrobin_id": "2631"},
+                    "O": {"name": "O", "astrobin_id": "2630"},
+                }
+            }
+        ],
+        "01333553-3f50-4985-83f1-2c906ad25bf1": [
+            {
+                "valid_from": "2000-01-01",
+                "valid_to": "2025-11-10",
+                "filters": {
+                    "L": {"name": "L", "astrobin_id": "30892"},
+                    "R": {"name": "R", "astrobin_id": "30858"},
+                    "G": {"name": "G", "astrobin_id": "30859"},
+                    "B": {"name": "B", "astrobin_id": "30860"},
+                    "S": {"name": "S", "astrobin_id": "30429"},
+                    "H": {"name": "H", "astrobin_id": "30427"},
+                    "O": {"name": "O", "astrobin_id": "30428"},
+                }
+            },
+            {
+                "valid_from": "2025-11-11",
+                "valid_to": None,
+                "filters": {
+                    "L": {"name": "L", "astrobin_id": "30892"},
+                    "R": {"name": "R", "astrobin_id": "30858"},
+                    "G": {"name": "G", "astrobin_id": "30859"},
+                    "B": {"name": "B", "astrobin_id": "30860"},
+                    "S": {"name": "S", "astrobin_id": "4394"},
+                    "H": {"name": "H", "astrobin_id": "4386"},
+                    "O": {"name": "O", "astrobin_id": "4390"},
+                }
+            }
+        ],
+    }
+    
     # do not include "id" column.  it is added as needed.
     columns = {
-        "filter": ['id', 'name', 'astrobin_id'],
+        "filter": ['id', 'name', 'astrobin_id', 'profile_id', 'valid_from', 'valid_to'],
         "location": ['id', 'name', 'latitude', 'longitude', 'magnitude', 'bortle', 'brightness_mcd_m2', 'artifical_brightness_ucd_m2'],
     }
 
@@ -363,7 +417,7 @@ class Astrophotgraphy(Database):
     conflicts = {
         "location": ['latitude', 'longitude'],
         "profile": ['id'],
-        "filter": ['name'],
+        "filter": ['name', 'profile_id', 'valid_from'],
         "accepted_data": ['date', 'shutter_time_seconds', 'panel_name', 'camera_id', 'optic_id', 'location_id', 'target_id', 'filter_id'],
     }
 
@@ -411,8 +465,6 @@ class Astrophotgraphy(Database):
                             # skip any "BLANK" filter
                             if f.startswith("BLANK"):
                                 continue
-                            if f not in self.defaultFilters:
-                                print(f"WARNING found unknown filter '{f}' in profile '{profile_name}'")
                             filters.append(f)
 
                     # special handling for filter names, order is priority.
@@ -459,20 +511,46 @@ class Astrophotgraphy(Database):
         return output_stmts
 
     def CreateFilters(self):
-        for f in self.defaultFilters.keys():
-            astrobin_id = self.defaultFilters[f]['astrobin_id']
-            self.execute(
-                f"""INSERT INTO filter (name,astrobin_id)
-                    values (
-                        '{f}',
-                        '{astrobin_id}'
+        """
+        Create all filters from profileFilters configuration.
+        This should be called once to ensure all filters exist in the database.
+        """
+        for profile_id, filter_sets in self.profileFilters.items():
+            for filter_set in filter_sets:
+                valid_from = filter_set.get("valid_from")
+                valid_to = filter_set.get("valid_to")
+                filters = filter_set.get("filters", {})
+                
+                if not valid_from:
+                    raise ValueError(f"valid_from is required for filter set in profile {profile_id}")
+                
+                for f in filters.keys():
+                    astrobin_id = filters[f]['astrobin_id']
+                    valid_to_str = f"'{valid_to}'" if valid_to else "NULL"
+                    
+                    self.execute(
+                        f"""INSERT INTO filter (name, astrobin_id, profile_id, valid_from, valid_to)
+                            values (
+                                '{f}',
+                                '{astrobin_id}',
+                                '{profile_id}',
+                                '{valid_from}',
+                                {valid_to_str}
+                            )
+                            ON CONFLICT (name, profile_id, valid_from)
+                            DO UPDATE SET
+                            last_updated_date = CURRENT_TIMESTAMP,
+                            astrobin_id = '{astrobin_id}',
+                            valid_to = {valid_to_str}
+                            ;"""
                     )
-                    ON CONFLICT (name)
-                    DO UPDATE SET
-                    last_updated_date = CURRENT_TIMESTAMP,
-                    astrobin_id = '{astrobin_id}'
-                    ;"""
-            )
+    
+    def EnsureFiltersExist(self):
+        """
+        Ensure all filters from profileFilters exist in the database.
+        This is a convenience method that calls CreateFilters().
+        """
+        self.CreateFilters()
 
 
     def UpdateFromDirectory(self, from_dir:str, modeDelete, modeCreate, modeUpdate):
@@ -570,6 +648,11 @@ class Astrophotgraphy(Database):
     
         if modeCreate or modeUpdate:
             print("Create or Update...")
+            
+            # Ensure all filters exist in the database before processing images
+            print("Ensuring filters exist in database...")
+            self.EnsureFiltersExist()
+            
             terminated = False
 
             required_properties=['type', 'targetname', 'panel', 'date', 'optic', 'focal_ratio',
@@ -685,12 +768,58 @@ class Astrophotgraphy(Database):
                     values={
                         "name": datum['targetname'],
                     })
-                self.insert(ignoreErrors=True, table="filter",
-                    values={
-                        "name": datum['filter'],
-                    })
+                # Get profile_id from optic and camera - fail if not found
+                profile_id_lookup = f"""(select id from profile 
+                    where optic_id=(select id from optic where name=\"{datum['optic']}\" and focal_ratio=\"{datum['focal_ratio']}\") 
+                    and camera_id=(select id from camera where name=\"{datum['camera']}\"))"""
+                
+                # Verify profile exists (filters should already be in database from EnsureFiltersExist)
+                profile_result = self.select(
+                    f"select id from profile where optic_id=(select id from optic where name=\"{datum['optic']}\" and focal_ratio=\"{datum['focal_ratio']}\") and camera_id=(select id from camera where name=\"{datum['camera']}\")",
+                    ['id']
+                )
+                if not profile_result or len(profile_result) == 0:
+                    raise ValueError(f"Profile not found for optic='{datum['optic']}', focal_ratio='{datum['focal_ratio']}', camera='{datum['camera']}'")
+                profile_id = profile_result[0]['id']
+                
+                # Verify filter configuration exists for this profile
+                if profile_id not in self.profileFilters:
+                    raise ValueError(f"Profile '{profile_id}' not found in profileFilters configuration")
+                
+                # Verify filter exists for this profile and date
+                image_date = datum['date']
+                filter_found = False
+                for filter_set in self.profileFilters[profile_id]:
+                    set_valid_from = filter_set.get("valid_from")
+                    set_valid_to = filter_set.get("valid_to")
+                    filters = filter_set.get("filters", {})
+                    
+                    # Check if this filter set is valid for the image date
+                    date_matches = True
+                    if image_date < set_valid_from:
+                        date_matches = False
+                    if set_valid_to and image_date >= set_valid_to:
+                        date_matches = False
+                    
+                    if date_matches and datum['filter'] in filters:
+                        filter_found = True
+                        break
+                
+                # Fail if filter not found for this profile and date
+                if not filter_found:
+                    raise ValueError(f"Filter '{datum['filter']}' not found for profile '{profile_id}' on date '{image_date}'")
 
                 # insert accepted data, update accepted_count if it already exists
+                # Find filter that matches name, profile_id, and date range
+                filter_lookup = f"""
+                    (select id from filter 
+                    where name=\"{datum['filter']}\" 
+                    and profile_id={profile_id_lookup}
+                    and valid_from <= '{image_date}'
+                    and (valid_to IS NULL OR valid_to > '{image_date}')
+                    order by valid_from DESC
+                    limit 1)
+                """
                 insert_stmt=f"""
                     INSERT INTO accepted_data(date, shutter_time_seconds, accepted_count, panel_name, raw_directory,
                     camera_id, optic_id, location_id, target_id, filter_id)
@@ -699,7 +828,7 @@ class Astrophotgraphy(Database):
                     (select id from optic where name=\"{datum['optic']}\" and focal_ratio=\"{datum['focal_ratio']}\"),
                     (select id from location where latitude=\"{datum['latitude']}\" and longitude=\"{datum['longitude']}\"),
                     (select id from target where name=\"{datum['targetname']}\"),
-                    (select id from filter where name=\"{datum['filter']}\")
+                    {filter_lookup}
                     )
                     ON CONFLICT (raw_directory) 
                     DO UPDATE SET 
