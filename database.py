@@ -361,51 +361,72 @@ class Astrophotgraphy(Database):
     # valid_from is required - use an early date like "2000-01-01" for filters that have always been valid
     # valid_to is optional - if None, the filter set has no end date
     # NOTE filter sets cannot overlap.  An update to a subset of filters must be represented as a completely new set of filters.
-    profileFilters = {
-        "8c4179b3-edf2-40d2-8a3a-b13d15cc49d5": [
-            {
-                "valid_from": "2000-01-01",
-                "valid_to": None,
-                "filters": {
-                    "L": {"name": "L", "astrobin_id": "2625"},
-                    "R": {"name": "R", "astrobin_id": "2627"},
-                    "G": {"name": "G", "astrobin_id": "2626"},
-                    "B": {"name": "B", "astrobin_id": "2628"},
-                    "S": {"name": "S", "astrobin_id": "2629"},
-                    "H": {"name": "H", "astrobin_id": "2631"},
-                    "O": {"name": "O", "astrobin_id": "2630"},
-                }
-            }
-        ],
-        "01333553-3f50-4985-83f1-2c906ad25bf1": [
-            {
-                "valid_from": "2000-01-01",
-                "valid_to": "2025-11-10",
-                "filters": {
-                    "L": {"name": "L", "astrobin_id": "30892"},
-                    "R": {"name": "R", "astrobin_id": "30858"},
-                    "G": {"name": "G", "astrobin_id": "30859"},
-                    "B": {"name": "B", "astrobin_id": "30860"},
-                    "S": {"name": "S", "astrobin_id": "30429"},
-                    "H": {"name": "H", "astrobin_id": "30427"},
-                    "O": {"name": "O", "astrobin_id": "30428"},
-                }
-            },
-            {
-                "valid_from": "2025-11-11",
-                "valid_to": None,
-                "filters": {
-                    "L": {"name": "L", "astrobin_id": "30892"},
-                    "R": {"name": "R", "astrobin_id": "30858"},
-                    "G": {"name": "G", "astrobin_id": "30859"},
-                    "B": {"name": "B", "astrobin_id": "30860"},
-                    "S": {"name": "S", "astrobin_id": "4394"},
-                    "H": {"name": "H", "astrobin_id": "4386"},
-                    "O": {"name": "O", "astrobin_id": "4390"},
-                }
-            }
-        ],
-    }
+    # This is now loaded from database-config.json via _load_profile_filters()
+    _profileFilters_cache = None
+    
+    @classmethod
+    def _load_profile_filters(cls):
+        """
+        Load profile filters from database-config.json.
+        Transforms the config structure to match the expected format.
+        """
+        if cls._profileFilters_cache is not None:
+            return cls._profileFilters_cache
+        
+        # Find config file - look in parent directory of scripts
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        config_path = os.path.join(os.path.dirname(script_dir), "database-config.json")
+        
+        if not os.path.exists(config_path):
+            raise FileNotFoundError(f"Configuration file not found: {config_path}")
+        
+        with open(config_path, 'r', encoding='utf-8') as f:
+            config = json.load(f)
+        
+        # Transform config structure to match expected format
+        profile_filters = {}
+        profiles = config.get("profiles", [])
+        
+        for profile in profiles:
+            profile_id = profile.get("profile_id")
+            if not profile_id:
+                continue
+            
+            filter_configurations = profile.get("filter_configurations", [])
+            filter_sets = []
+            
+            for filter_config in filter_configurations:
+                valid_from = filter_config.get("valid_from")
+                valid_to = filter_config.get("valid_to")
+                filters_array = filter_config.get("filters", [])
+                
+                # Transform filters array to dict format expected by code
+                filters_dict = {}
+                for filter_obj in filters_array:
+                    filter_name = filter_obj.get("name")
+                    astrobin_id = filter_obj.get("astrobin_id", "")
+                    if filter_name:
+                        filters_dict[filter_name] = {
+                            "name": filter_name,
+                            "astrobin_id": astrobin_id
+                        }
+                
+                filter_sets.append({
+                    "valid_from": valid_from,
+                    "valid_to": valid_to,
+                    "filters": filters_dict
+                })
+            
+            if filter_sets:
+                profile_filters[profile_id] = filter_sets
+        
+        cls._profileFilters_cache = profile_filters
+        return profile_filters
+    
+    @property
+    def profileFilters(self):
+        """Load profile filters from config file on first access."""
+        return self.__class__._load_profile_filters()
     
     # do not include "id" column.  it is added as needed.
     columns = {
