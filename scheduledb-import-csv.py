@@ -12,6 +12,7 @@ import common
 
 try:
     conn_ts = sqlite3.connect(common.DATABASE_TARGET_SCHEDULER)
+    initial_changes_ts = conn_ts.total_changes
     c_ts = conn_ts.cursor()
     c_ts.execute("PRAGMA case_sensitive_like=ON")
     conn_ap = sqlite3.connect(common.DATABASE_ASTROPHOTGRAPHY)
@@ -214,6 +215,8 @@ try:
 
         print(f"Updated '{update_count}' for {profile_name}")
 
+    common.track_scheduler_changes(conn_ts, initial_changes_ts, False)
+    conn_ts.commit()
     common.backup_scheduler_database()
 
 except sqlite3.Error as e:

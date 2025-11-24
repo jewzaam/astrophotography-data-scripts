@@ -397,6 +397,38 @@ def project_status_from_path(path: str):
     return status
 
 
+def track_scheduler_changes(conn, initial_changes: int, dryrun: bool = False): # pragma: no cover
+    """
+    Tracks if the scheduler database was modified by checking total_changes().
+    If changes detected, increments a counter in a single-row tracking table.
+    Call this BEFORE commit() so the tracking update is part of the same transaction.
+    
+    Args:
+        conn: SQLite connection object
+        initial_changes: Value of conn.total_changes when connection was opened
+        dryrun: If True, skip tracking (no actual changes made)
+    """
+    if dryrun:
+        return
+    
+    final_changes = conn.total_changes
+    if final_changes > initial_changes:
+        # Create tracking table if it doesn't exist (single row with incrementing counter)
+        cursor = conn.cursor()
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS db_changes (
+                id INTEGER PRIMARY KEY,
+                change_count INTEGER DEFAULT 0
+            )
+        """)
+        # Upsert: insert row with id=1 if it doesn't exist, or increment counter if it does
+        cursor.execute("""
+            INSERT INTO db_changes (id, change_count) VALUES (1, 1)
+            ON CONFLICT (id) DO UPDATE SET change_count = change_count + 1
+        """)
+        # Note: caller must commit after this call
+
+
 def backup_scheduler_database(): # pragma: no cover
     """
     Creates a backup of the NINA Scheduler database to Dropbox.

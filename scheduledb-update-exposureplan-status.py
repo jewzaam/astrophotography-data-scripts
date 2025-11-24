@@ -7,6 +7,8 @@ import sqlite3
 import traceback
 import os
 
+import common
+
 # originally defined in common, but to reduce dependencies pulling it out.
 def replace_env_vars(input:str):
     """
@@ -41,9 +43,11 @@ try:
         sqlite3.Error: Handles SQLite errors and ensures the database connection is closed properly.
     """
     conn_ts = sqlite3.connect(replace_env_vars(r"%LocalAppData%\NINA\SchedulerPlugin\schedulerdb.sqlite"))
+    initial_changes_ts = conn_ts.total_changes
     c_ts = conn_ts.cursor()
 
     c_ts.execute("update exposureplan set accepted=acquired;")
+    common.track_scheduler_changes(conn_ts, initial_changes_ts, False)
     conn_ts.commit()
 
 except sqlite3.Error as e:

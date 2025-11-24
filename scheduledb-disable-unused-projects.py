@@ -23,6 +23,7 @@ user_dryrun = args["dryrun"]
 
 try:
     conn_ts = sqlite3.connect(common.DATABASE_TARGET_SCHEDULER)
+    initial_changes_ts = conn_ts.total_changes
     c_ts = conn_ts.cursor()
 
     # simple script, disable all projects that have no EP attached
@@ -59,6 +60,7 @@ try:
                             where id='{project_id}'
                             ;""")
 
+    common.track_scheduler_changes(conn_ts, __file__, initial_changes_ts, user_dryrun)
     conn_ts.commit()
 
     common.backup_scheduler_database()

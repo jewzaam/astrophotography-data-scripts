@@ -35,6 +35,7 @@ for root, d_names, f_names in os.walk(common.DIRECTORY_NINA_PROFILES):
 # connect to the 2 databases
 try:
     conn_ts = sqlite3.connect(common.DATABASE_TARGET_SCHEDULER)
+    initial_changes_ts = conn_ts.total_changes
     c_ts = conn_ts.cursor()
     conn_ap = sqlite3.connect(common.DATABASE_ASTROPHOTGRAPHY)
     c_ap = conn_ap.cursor()
@@ -385,6 +386,8 @@ try:
             
             conn_ts.commit()
 
+    common.track_scheduler_changes(conn_ts, initial_changes_ts, False)
+    conn_ts.commit()
     common.backup_scheduler_database()
 
 except sqlite3.Error as e:
